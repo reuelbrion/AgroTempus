@@ -1,5 +1,6 @@
 package io.osv;
 
+<<<<<<< HEAD
 import java.io.*;
 import java.net.*;
 import java.util.Date;
@@ -34,5 +35,10 @@ public class Main
 				e.printStackTrace();	
 			}
 		}
+=======
+public class Main {
+  public static void main(String[] args) {
+    System.out.println("hello, world!");
+>>>>>>> 2fa9d557e5ccf63bc6245c1cd7aa46f6933edf4f
   }
 }
