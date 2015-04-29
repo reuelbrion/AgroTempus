@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>WeatherApp Main</title>
+  <link rel="icon" type="image/png" href="images/icon-128.png">
+    <meta name="viewport" content="width=device-width"> 
+  <link href="style/style.css" type="text/css" rel="stylesheet">
+  <script type="text/javascript" defer src="js/status.js"></script>
+  <script type="text/javascript" defer src="js/seekbars.js"></script>
+  <script type="text/javascript" defer src="js/app.js"></script>
+  <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+  <script type="text/javascript" src="js/jquery.animate-colors-min.js"></script>
+</head>
+<body>
+<section id="index" data-position="current">
+    <section role="region">
+        <header class="fixed">
+            <h1>Main menu</h1>
+        </header>
+        <article class="scrollable header">
+
+        </article>
+    </section>
+</section> <!-- end index -->
+
+<div id="main">
+	<button id="submit-data">Submit data</button>
+	<button id="get-data">Get data</button>
+	<button id="forecasts">Forecasts</button>
+	<button id="Regression">Regression</button>
+</div>
+
+<footer>
+    <div role="toolbar">
+        <ul>
+            <li><button id="reload" class="update" data-l10n-id="update-button">Update</button></li>
+        </ul>
+    </div>
+</footer>
+
+<script type="text/javascript" src="js/base.js"></script>
+<script type="text/javascript" src="js/webapp.js"></script>
+<script type="text/javascript" src="js/offline.js"></script>
+
+</body>
+
+<script src="scripts/install.js"></script>
+
+</html>
