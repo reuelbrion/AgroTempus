@@ -10,31 +10,48 @@ function setSectionVisible(visibleSection){
 	document.getElementById(visibleSection).setAttribute("class", "visible-section");
 }
 
+function makeBackButtonHeaderVisible(){
+	document.getElementById("back-to-main-head-btn").setAttribute("class", "icon icon-back");
+	document.getElementById("back-to-main-span").setAttribute("class", "");
+}
+
+function makeBackButtonHeaderInvisible(){
+	document.getElementById("back-to-main-head-btn").setAttribute("class", "hidden");
+	document.getElementById("back-to-main-span").setAttribute("class", "hidden");
+}
+
 function submitDataClick(){
 	setSectionVisible("submit");
+	makeBackButtonHeaderVisible();
 }
 
 function getDataClick(){
 	setSectionVisible("get-data");
+	makeBackButtonHeaderVisible();
 }
 
 function forecastsClick(){
 	setSectionVisible("forecasts");
+	makeBackButtonHeaderVisible();	
 }
 
 function predictionClick(){
 	setSectionVisible("prediction");
+	makeBackButtonHeaderVisible();
 }
 
 function regressionClick(){
 	setSectionVisible("regression");
+	makeBackButtonHeaderVisible();
 }
 
 function backToMainClick(){
 	setSectionVisible("main");
+	makeBackButtonHeaderInvisible();
 }
 
 window.onload = function () {
+	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);
     document.getElementById("submit-data-btn").addEventListener("click", submitDataClick);
 	document.getElementById("get-data-btn").addEventListener("click", getDataClick);
 	document.getElementById("forecasts-btn").addEventListener("click", forecastsClick);
