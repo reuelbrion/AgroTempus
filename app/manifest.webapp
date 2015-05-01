@@ -1,6 +1,7 @@
 {
   "name": "WeatherApp",
-  "description": "Store and retrieve weather data.",
+  "version": "0.1",
+  "description": "Store and retrieve weather data",
   "launch_path": "/app.html",
   "icons": {
     "128": "/images/icon-128.png",
@@ -13,6 +14,9 @@
   "permissions": {
     "desktop-notification": {
       "description": "Needed for creating system notifications."
-    }
+    },
+	"storage": {
+        "description": "Required for storing and retrieving data."
+        }
   }
 }

@@ -2,49 +2,79 @@
 <html lang="en-US">
 <head>
   <meta charset="UTF-8">
-  <title>WeatherApp Main</title>
+  <title>Weather App</title>
   <link rel="icon" type="image/png" href="images/icon-128.png">
     <meta name="viewport" content="width=device-width"> 
   <link href="style/style.css" type="text/css" rel="stylesheet">
-  <script type="text/javascript" defer src="js/status.js"></script>
-  <script type="text/javascript" defer src="js/seekbars.js"></script>
-  <script type="text/javascript" defer src="js/app.js"></script>
-  <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
-  <script type="text/javascript" src="js/jquery.animate-colors-min.js"></script>
 </head>
+
 <body>
-<section id="index" data-position="current">
-    <section role="region">
-        <header class="fixed">
-            <h1>Main menu</h1>
-        </header>
-        <article class="scrollable header">
+<!-- start title -->
+<section id="title">
+	<header class="fixed">
+		<menu type="toolbar"><h1>Weather App</h1></menu>
+	</header>
+</section> 	
+<!-- end title -->
 
-        </article>
-    </section>
-</section> <!-- end index -->
+<!-- start main screen-->
+<section id="main" class="visible-section">
+	<div id="main-menu" class="menu-container">
+		<button class="menu-button" id="submit-data-btn">Submit data</button>
+		<button class="menu-button" id="get-data-btn">Get data</button>
+		<button class="menu-button" id="forecasts-btn">Forecasts</button>
+		<button class="menu-button" id="prediction-btn">Prediction</button>
+		<button class="menu-button" id="regression-btn">Regression</button>
+	</div>
+</section> 
+<!-- end main screen-->
 
-<div id="main">
-	<button id="submit-data">Submit data</button>
-	<button id="get-data">Get data</button>
-	<button id="forecasts">Forecasts</button>
-	<button id="Regression">Regression</button>
-</div>
+<!-- start submit screen -->
+<section id="submit" class="hidden">
+	<div id="submit-menu" class="menu-container">
+		<h2>Submit data</h2>
+		<button class="menu-button" id="back-to-main-btn1">Back to main menu</button>
+	</div>
+</section> 
+<!-- end submit screen -->
 
-<footer>
-    <div role="toolbar">
-        <ul>
-            <li><button id="reload" class="update" data-l10n-id="update-button">Update</button></li>
-        </ul>
-    </div>
-</footer>
+<!-- start get data screen -->
+<section id="get-data" class="hidden">
+	<div id="get-data-menu" class="menu-container">
+		<h2>Get data</h2>
+		<button class="menu-button" id="back-to-main-btn2">Back to main menu</button>
+	</div>
+</section> 
+<!-- end get data screen -->
 
-<script type="text/javascript" src="js/base.js"></script>
-<script type="text/javascript" src="js/webapp.js"></script>
-<script type="text/javascript" src="js/offline.js"></script>
+<!-- start forecasts screen -->
+<section id="forecasts" class="hidden">
+	<div id="forecasts-menu" class="menu-container">
+		<h2>Forecasts</h2>
+		<button class="menu-button" id="back-to-main-btn3">Back to main menu</button>
+	</div>
+</section> 
+<!-- end forecasts screen -->
 
+<!-- start prediction screen -->
+<section id="prediction" class="hidden">
+	<div id="prediction-menu" class="menu-container">
+		<h2>Prediction</h2>
+		<button class="menu-button" id="back-to-main-btn4">Back to main menu</button>
+	</div>
+</section> 
+<!-- end prediction screen -->
+
+<!-- start regression screen -->
+<section id="regression" class="hidden">
+	<div id="regression-menu" class="menu-container">
+		<h2>Regression</h2>
+		<button class="menu-button" id="back-to-main-btn5">Back to main menu</button>
+	</div>
+</section> 
+<!-- end regression screen -->
+
+<script type="text/javascript" src="js/app.js"></script>
 </body>
-
-<script src="scripts/install.js"></script>
 
 </html>

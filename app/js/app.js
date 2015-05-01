@@ -1,149 +1,49 @@
-//action menu
-document.querySelector('#btn-action-menu').addEventListener ('click', function () {
-  document.querySelector('#action-menu').className = 'fade-in';
-});
-document.querySelector('#action-menu').addEventListener ('click', function () {
-  this.className = 'fade-out';
-});
+"use strict";
 
-//buttons
-document.querySelector('#btn-buttons').addEventListener ('click', function () {
-  document.querySelector('#buttons').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-buttons-back').addEventListener ('click', function () {
-  document.querySelector('#buttons').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
+function setSectionVisible(visibleSection){
+	var sections = document.getElementsByTagName("section");
+	for (var i = 0; i < sections.length; i++) {
+		if(sections[i].getAttribute("id") != "title"){
+			sections[i].setAttribute("class", "hidden");
+		}
+	}
+	document.getElementById(visibleSection).setAttribute("class", "visible-section");
+}
 
-//confirm
-document.querySelector('#btn-confirm').addEventListener ('click', function () {
-  document.querySelector('#confirm').className = 'fade-in';
-});
-document.querySelector('#confirm').addEventListener ('click', function () {
-  this.className = 'fade-out';
-});
+function submitDataClick(){
+	setSectionVisible("submit");
+}
 
-//edit mode
-document.querySelector('#btn-edit-mode').addEventListener ('click', function () {
-  document.querySelector('#edit-mode').className = 'edit';
-});
-document.querySelector('#edit-mode').addEventListener ('click', function () {
-  this.className = '';
-});
+function getDataClick(){
+	setSectionVisible("get-data");
+}
 
-//headers
-document.querySelector('#btn-headers').addEventListener ('click', function () {
-  document.querySelector('#headers').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-headers-back').addEventListener ('click', function () {
-  document.querySelector('#headers').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
+function forecastsClick(){
+	setSectionVisible("forecasts");
+}
 
-//input areas
-document.querySelector('#btn-input-areas').addEventListener ('click', function () {
-  document.querySelector('#input-areas').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-input-areas-back').addEventListener ('click', function () {
-  document.querySelector('#input-areas').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
+function predictionClick(){
+	setSectionVisible("prediction");
+}
 
-//status
-document.querySelector('#btn-status').addEventListener ('click', function () {
-  utils.status.show('The Alarm is set for 7 hours and 14 minutes from now');    
-});
+function regressionClick(){
+	setSectionVisible("regression");
+}
 
-//switches
-document.querySelector('#btn-switches').addEventListener ('click', function () {
-  document.querySelector('#switches').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-switches-back').addEventListener ('click', function () {
-  document.querySelector('#switches').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
+function backToMainClick(){
+	setSectionVisible("main");
+}
 
-//lists
-document.querySelector('#btn-lists').addEventListener ('click', function () {
-  document.querySelector('#lists').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-lists-back').addEventListener ('click', function () {
-  document.querySelector('#lists').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
+window.onload = function () {
+    document.getElementById("submit-data-btn").addEventListener("click", submitDataClick);
+	document.getElementById("get-data-btn").addEventListener("click", getDataClick);
+	document.getElementById("forecasts-btn").addEventListener("click", forecastsClick);
+	document.getElementById("prediction-btn").addEventListener("click", predictionClick);
+	document.getElementById("regression-btn").addEventListener("click", regressionClick);
+	document.getElementById("back-to-main-btn1").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn2").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
+};
 
-//progress
-document.querySelector('#btn-progress').addEventListener ('click', function () {
-  document.querySelector('#progress').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-progress-back').addEventListener ('click', function () {
-  document.querySelector('#progress').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//scrolling
-document.querySelector('#btn-scrolling').addEventListener ('click', function () {
-  document.querySelector('#scrolling').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-scrolling-back').addEventListener ('click', function () {
-  document.querySelector('#scrolling').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//seek bars
-document.querySelector('#btn-seek-bars').addEventListener ('click', function () {
-  document.querySelector('#seek-bars').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-  var animend = (/webkit/i).test(navigator.appVersion) ? 'webkitAnimationEnd' : 'animationend';
-
-  document.addEventListener(animend, function animationend() {
-    document.removeEventListener(animend, animationend);
-    utils.seekbars.init();
-  });
-});
-document.querySelector('#btn-seek-bars-back').addEventListener ('click', function () {
-  document.querySelector('#seek-bars').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//tabs
-document.querySelector('#btn-tabs').addEventListener ('click', function () {
-  document.querySelector('#tabs').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-tabs-back').addEventListener ('click', function () {
-  document.querySelector('#tabs').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//filters
-document.querySelector('#btn-filters').addEventListener ('click', function () {
-  document.querySelector('#filters').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-filters-back').addEventListener ('click', function () {
-  document.querySelector('#filters').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//toolbars
-document.querySelector('#btn-toolbars').addEventListener ('click', function () {
-  document.querySelector('#toolbars').className = 'current';
-  document.querySelector('[data-position="current"]').className = 'left';
-});
-document.querySelector('#btn-toolbars-back').addEventListener ('click', function () {
-  document.querySelector('#toolbars').className = 'right';
-  document.querySelector('[data-position="current"]').className = 'current';
-});
-
-//weather app
-document.querySelector('#button1').addEventListener ('click', function () {
-  window.location = "./storeweatherdata.html"; ;
-});
