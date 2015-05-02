@@ -1,0 +1,8 @@
+var sys = require("sys");
+while(true){
+sys.puts("trinh trang");
+
+sys.puts("ching chang");
+
+sys.puts("ching chang");
+}

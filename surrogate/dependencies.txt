@@ -1,0 +1,3 @@
+nodejs
+libnss-mdns
+.service file in /etc/avahi/services
