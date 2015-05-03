@@ -16,6 +16,10 @@
 	<header>
 		<button id="back-to-main-head-btn" class="hidden"><span id="back-to-main-span" class="hidden">back</span></button>
 		<h1>Weather App</h1>
+		<menu type="toolbar">
+		<button id="store-submit-btn" class="hidden"><span id="store-submit-span" class="hidden">store
+		</span></button>
+		</menu>
 	</header>
 </section> 	
 <!-- end title -->
@@ -38,13 +42,35 @@
 		<h2>Submit data</h2>
 		<form>
 			<p>
-				Location<br />
+				Location<br>
 				<input type="text" placeholder="Location" required="">
 			</p>
 			<p>
-				<input type="text" placeholder="Placeholder" required="">
+				Temperature &#40;&deg;C&#41;<br>
+				<input type="number" placeholder="Temperature" min="-100" max="80" step="0.001" name="temperature">
+			</p>
+			<p>
+				Humidity &#40;%&#41;<br>
+				<input type="number" placeholder="Humidity" min="0" max="100" step="0.001" name="humidity">
+			</p>
+			<p>
+				Pressure &#40;hPa&#41;<br>
+				<input type="number" placeholder="Pressure" min="0" max="1200" step="0.001" name="pressure">
+			</p>
+			<p>
+				Wind speed &#40;m&#47;s&#41;<br>
+				<input type="number" placeholder="Wind speed" min="0" max="200" step="0.001" name="wind-speed">
+			</p>
+			<p>
+				Wind degree &#40;degrees&#41;<br>
+				<input type="number" placeholder="Wind degree" min="0" max="360" step="0.01" name="wind-speed">
+			</p>
+			<p>
+				<button class="menu-button" id="edit-time-btn">Change time</button>
 			</p>
 		</form>
+		
+		<br><br>
 		<button class="menu-button" id="back-to-main-btn1">Back to main menu</button>
 	</div>
 </section> 

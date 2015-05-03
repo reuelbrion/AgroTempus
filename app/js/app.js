@@ -15,6 +15,16 @@ function makeBackButtonHeaderVisible(){
 	document.getElementById("back-to-main-span").setAttribute("class", "");
 }
 
+function makeStoreButtonHeaderVisible(){
+	document.getElementById("store-submit-btn").setAttribute("class", "icon icon-store");
+	document.getElementById("store-submit-span").setAttribute("class", "");
+}
+
+function makeStoreButtonHeaderInvisible(){
+	document.getElementById("store-submit-btn").setAttribute("class", "hidden");
+	document.getElementById("store-submit-span").setAttribute("class", "hidden");
+}
+
 function makeBackButtonHeaderInvisible(){
 	document.getElementById("back-to-main-head-btn").setAttribute("class", "hidden");
 	document.getElementById("back-to-main-span").setAttribute("class", "hidden");
@@ -23,6 +33,7 @@ function makeBackButtonHeaderInvisible(){
 function submitDataClick(){
 	setSectionVisible("submit");
 	makeBackButtonHeaderVisible();
+	makeStoreButtonHeaderVisible();
 }
 
 function getDataClick(){
@@ -48,6 +59,7 @@ function regressionClick(){
 function backToMainClick(){
 	setSectionVisible("main");
 	makeBackButtonHeaderInvisible();
+	makeStoreButtonHeaderInvisible();
 }
 
 window.onload = function () {
