@@ -1,6 +1,7 @@
 /* ----------------------------------
 * Input areas
 * ---------------------------------- */
+
 input[type="text"],
 input[type="password"],
 input[type="email"],
@@ -31,10 +32,27 @@ label:active {
   background-color: transparent;
 }
 
+
 textarea {
   height: 10rem;
   max-height: 10rem;
   line-height: 2rem;
+}
+
+select {
+  height: 2rem;
+  max-height: 2rem;
+  line-height: 2rem;
+  display: inline-block;
+  width: 80%;
+  box-sizing: border-box;
+  padding: 0 1.5rem;
+  font-size: 1.6rem;
+  border: 0.1rem solid #c7c7c7;
+  border-radius: 0;
+  color: #333;
+  background: #fff;
+  margin: 0 0 1rem 0;
 }
 
 input::-moz-placeholder,
@@ -127,17 +145,17 @@ input[type="time"],
 input[type="datetime"],
 input[type="datetime-local"] {
   border: 0.1rem solid #c7c7c7;
-  width: 100%;
+  width: 7rem;
   box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
-  font-size: 1.6rem;
+  font-size: 1rem;
   margin: 0 0 1.5rem;
   padding: 0 1.5rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  height: 4rem;
+  height: 3rem;
   color: #333;
   border-radius: 0;
   background: #fff url(input_areas/images/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);

@@ -56,23 +56,47 @@ function regressionClick(){
 	makeBackButtonHeaderVisible();
 }
 
+function editDataSubmitClick(){
+	stageNewSubmit();
+}
+
+function editTimeClick(){
+	var button = document.getElementById("edit-time-btn");
+	if (button.getAttribute("value") == "no-edit"){
+		button.setAttribute("value", "edit");
+		button.innerHTML = "Use current time";
+		document.getElementById("time-input-form").setAttribute("class", "");
+		document.getElementById("date-input-form").setAttribute("class", "");
+	}	
+	else{
+		button.setAttribute("value", "no-edit");
+		button.innerHTML = "Change time";
+		document.getElementById("time-input-form").setAttribute("class", "hidden");
+		document.getElementById("date-input-form").setAttribute("class", "hidden");
+	}
+}
+
 function backToMainClick(){
 	setSectionVisible("main");
 	makeBackButtonHeaderInvisible();
 	makeStoreButtonHeaderInvisible();
 }
 
-window.onload = function () {
+$(document).ready(function () {
 	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);
     document.getElementById("submit-data-btn").addEventListener("click", submitDataClick);
 	document.getElementById("get-data-btn").addEventListener("click", getDataClick);
 	document.getElementById("forecasts-btn").addEventListener("click", forecastsClick);
 	document.getElementById("prediction-btn").addEventListener("click", predictionClick);
 	document.getElementById("regression-btn").addEventListener("click", regressionClick);
+	
+	document.getElementById("submit-submit-btn").addEventListener("click", editDataSubmitClick);
+	document.getElementById("edit-time-btn").addEventListener("click", editTimeClick);
+		
 	document.getElementById("back-to-main-btn1").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn2").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
-};
+});
 
