@@ -82,6 +82,19 @@ function backToMainClick(){
 	makeStoreButtonHeaderInvisible();
 }
 
+function loadLocations(){
+	//get locations from storage.js
+	var locations = getLocations();
+	var locationString = "";
+	for (var i = 0; i < locations.length; i++) {
+		locationString += "<option>";
+		locationString += locations[i];
+		locationString += "</option>\n";
+	}
+	
+	document.getElementById("location-select").innerHTML = locationString;
+}
+
 $(document).ready(function () {
 	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);
     document.getElementById("submit-data-btn").addEventListener("click", submitDataClick);
@@ -98,5 +111,7 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
+	
+	loadLocations();
 });
 

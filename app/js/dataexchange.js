@@ -1,6 +1,7 @@
 "use strict";
 
 var stagingList = [];
+var retryStagingInterval = 30000; //ms
 
 function stageNewSubmit(){
 	var submitForm = document.forms["submit-form"];
@@ -13,16 +14,24 @@ function stageNewSubmit(){
 	stagingObject.winddegree = submitForm["wind-deg-input"].value;
 	stagingObject.time = submitForm["time-input"].value;
 	stagingObject.date = submitForm["date-input"].value;
+	stagingObject.source = "app";
 		
 	var stagingString = JSON.stringify(stagingObject);
 	stagingList.push(stagingString);
+	//TODO: try to push one time
+	//TODO: return success/failure messages
 }
 
 function pushStagedData(){
+	//TODO: check for availability of surrogate
+	//TODO: increase/decrease interval 
 	while(stagingList.length > 0){
-		alert(stagingList.shift());
+		//TODO: push data to surrogate
+		alert("Sending: \n" + stagingList.shift());
 	}
 }
+
+setInterval(pushStagedData, retryStagingInterval);
 	
 /*
 $(document).ready(function () {
