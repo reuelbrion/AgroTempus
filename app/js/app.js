@@ -83,16 +83,20 @@ function backToMainClick(){
 }
 
 function loadLocations(){
-	//get locations from storage.js
-	var locations = getLocations();
-	var locationString = "";
-	for (var i = 0; i < locations.length; i++) {
-		locationString += "<option>";
-		locationString += locations[i];
-		locationString += "</option>\n";
-	}
-	
-	document.getElementById("location-select").innerHTML = locationString;
+	var objectStore = db.transaction("surrogates").objectStore("surrogates");
+	objectStore.openCursor().onsuccess = function (event) {
+		var cursor = event.target.result;
+		var locationString = "";
+		if (cursor) {
+			console.info("Found surrogate #" + cursor.value.name + " - " + cursor.value.country);
+			locationString += "<option>";
+			locationString += cursor.value.name + " - " + cursor.value.country;
+			locationString += "</option>\n";
+			document.getElementById("location-select").innerHTML += locationString;
+			console.log(locationString);
+			cursor.continue();
+		}
+    };
 }
 
 $(document).ready(function () {
@@ -111,7 +115,5 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
-	
-	loadLocations();
 });
 
