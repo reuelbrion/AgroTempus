@@ -73,7 +73,7 @@
 			</p>
 			<p id="date-input-form" class="hidden">
 				Date<br>
-				<input id="date-input" type="date" name="date">
+				<input id="submit-date-input" type="date" name="date">
 			</p>
 			<p>
 				<button type="button" class="menu-button" id="submit-submit-btn">Submit</button>
@@ -93,10 +93,37 @@
 <section id="get-data" class="hidden">
 	<div id="get-data-menu" class="menu-container">
 		<h2>Get data</h2>
+		<form id="submit-form">
+			<p>
+				Start<br>
+				<input id="get-date-input1" type="date" name="date">
+			</p>
+			<p>
+				End<br>
+				<input id="get-date-input2" type="date" name="date">
+			</p>
+			<p>
+				<button type="button" class="menu-button" id="get-submit-btn">Submit</button>
+			</p>
+		</form>
+		
+		<br><br>
 		<button class="menu-button" id="back-to-main-btn2">Back to main menu</button>
 	</div>
 </section> 
 <!-- end get data screen -->
+
+<!-- start get data results screen -->
+<section id="get-data-results" class="hidden">
+	<div id="get-data-results-menu" class="menu-container">
+		<h2>Get data - results</h2>
+		<span id="get-results-span">
+		</span>
+		<br><br>
+		<button class="menu-button" id="back-to-main-btn-results">Back to main menu</button>
+	</div>
+</section> 
+<!-- end get data results screen -->
 
 <!-- start forecasts screen -->
 <section id="forecasts" class="hidden">

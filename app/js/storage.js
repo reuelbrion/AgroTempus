@@ -10,7 +10,6 @@ request.onsuccess = function (event) {
 	db = event.target.result;
 	console.info("database opened successfully");
 	//load locations in app.js
-	loadLocations();
 };
 
 request.onupgradeneeded = function (event) {

@@ -3,6 +3,8 @@
 var stagingList = [];
 var retryStagingInterval = 30000; //ms
 
+setInterval(pushStagedData, retryStagingInterval);
+
 function stageNewSubmit(){
 	var submitForm = document.forms["submit-form"];
 	var stagingObject = new Object();
@@ -31,9 +33,9 @@ function pushStagedData(){
 	}
 }
 
-setInterval(pushStagedData, retryStagingInterval);
-	
-/*
-$(document).ready(function () {
-});
-*/
+function pullData(startDate, endDate){
+	if (!(startDate instanceof Date) || !(endDate instanceof Date)){
+		//TODO: error handling
+	}
+	//TODO: get Data from surrogate	
+}

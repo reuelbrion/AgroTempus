@@ -60,6 +60,13 @@ function editDataSubmitClick(){
 	stageNewSubmit();
 }
 
+function getDataSubmitClick(){
+	setSectionVisible("get-data-results");
+	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
+	//from dataexchange.js
+	pullData();
+}
+
 function editTimeClick(){
 	var button = document.getElementById("edit-time-btn");
 	if (button.getAttribute("value") == "no-edit"){
@@ -109,11 +116,15 @@ $(document).ready(function () {
 	
 	document.getElementById("submit-submit-btn").addEventListener("click", editDataSubmitClick);
 	document.getElementById("edit-time-btn").addEventListener("click", editTimeClick);
+	
+	document.getElementById("get-submit-btn").addEventListener("click", getDataSubmitClick);
 		
 	document.getElementById("back-to-main-btn1").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn2").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
+	
+	loadLocations();
 });
 
