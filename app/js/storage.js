@@ -2,6 +2,7 @@
 
 var db;
 var request = indexedDB.open("surrogates", 1);
+
 request.onerror = function (event) {
 	console.error("Can't open indexedDB!!!", event);
 	console.trace();
@@ -38,3 +39,20 @@ request.onupgradeneeded = function (event) {
         objectStore.add(sampleSurrogate2);
     }
 };
+
+function loadLocations(callBack){
+	//TODO check callback is a function
+	var objectStore = db.transaction("surrogates").objectStore("surrogates");
+	objectStore.openCursor().onsuccess = function (event) {
+		var cursor = event.target.result;
+		var locations = [];
+		if (cursor) {
+			console.info("Found surrogate #" + cursor.value.name + " - " + cursor.value.country);
+			locations.push(cursor.value.name + " - " + cursor.value.country);
+			
+			cursor.continue();
+		}
+		console.log(locations);
+		callBack(locations);
+    };
+}

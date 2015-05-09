@@ -63,7 +63,7 @@ function editDataSubmitClick(){
 function getDataSubmitClick(){
 	setSectionVisible("get-data-results");
 	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
-	//from dataexchange.js
+	//pull data in dataexchange.js
 	pullData();
 }
 
@@ -89,22 +89,29 @@ function backToMainClick(){
 	makeStoreButtonHeaderInvisible();
 }
 
-function loadLocations(){
-	var objectStore = db.transaction("surrogates").objectStore("surrogates");
-	objectStore.openCursor().onsuccess = function (event) {
-		var cursor = event.target.result;
-		var locationString = "";
-		if (cursor) {
-			console.info("Found surrogate #" + cursor.value.name + " - " + cursor.value.country);
-			locationString += "<option>";
-			locationString += cursor.value.name + " - " + cursor.value.country;
-			locationString += "</option>\n";
-			document.getElementById("location-select").innerHTML += locationString;
-			console.log(locationString);
-			cursor.continue();
-		}
-    };
+function backToMainClickResults(){
+	setSectionVisible("main");
+	makeBackButtonHeaderInvisible();
+	document.getElementById("get-results-span").innerHTML = "";
 }
+
+function addLocations(){
+	loadLocations(addLocationElements);
+}
+
+function addLocationElements(locations){
+	var locationString = "";
+	var len = locations.length;
+	for (var i = 0; i < len; i++) {
+		locationString += "<option>";
+		locationString += locations[i];
+		locationString += "</option>\n";
+		document.getElementById("location-select").innerHTML += locationString;
+		console.log(locationString);
+	}
+	
+}
+	
 
 $(document).ready(function () {
 	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);
@@ -124,7 +131,8 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn-results").addEventListener("click", backToMainClickResults);
 	
-	loadLocations();
+	addLocations();
 });
 
