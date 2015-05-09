@@ -57,14 +57,61 @@ function regressionClick(){
 }
 
 function editDataSubmitClick(){
-	stageNewSubmit();
+var submitForm = document.forms["submit-form"];
+	var stagingObject = new Object();
+	stagingObject.location = submitForm["location-select"].value;
+	stagingObject.temp = submitForm["temp-input"].value;
+	stagingObject.humidity = submitForm["humidity-input"].value;
+	stagingObject.pressure = submitForm["pressure-input"].value;
+	stagingObject.windspeed = submitForm["wind-speed-input"].value;
+	stagingObject.winddegree = submitForm["wind-deg-input"].value;
+	stagingObject.time = submitForm["datetime-input"].value;
+	stagingObject.source = "app";
+	stageNewSubmit(stagingObject, submitCallBack);
+}
+
+function submitCallBack(status){
+	if (status == "ok"){
+		alert("data submitted");
+	}
 }
 
 function getDataSubmitClick(){
 	setSectionVisible("get-data-results");
 	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
+	var startDate = $("#get-date-input1").val();
+	var endDate = $("#get-date-input2").val();
 	//pull data in dataexchange.js
-	pullData();
+	pullData(startDate, endDate, getDataCallBack);
+}
+
+function getDataCallBack(error, receivedItems, startDate, endDate){
+	if(error == null){
+		addGetDataElements(receivedItems, startDate, endDate);
+	}
+	else if(error == "wrongdate"){
+		alert("start date should be before end date!");
+		getDataClick();
+	}
+}
+
+function addGetDataElements(receivedItems, startDate, endDate){
+	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
+	while(receivedItems.length > 0){
+		var receivedObject = JSON.parse(receivedItems.shift());
+		itemString += "Location: " + receivedObject.location + "<br>";
+		itemString += "Temperature: " + receivedObject.temp + "<br>";
+		itemString += "Humidity: " + receivedObject.humidity + "<br>";
+		itemString += "Pressure: " + receivedObject.pressure + "<br>";
+		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
+		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
+		itemString += "Time: " + receivedObject.time + "<br>";
+		itemString += "Date: " + receivedObject.date + "<br>";
+		itemString += "Source: " + receivedObject.source + "<br><br>";
+		
+		console.log(itemString);
+	}
+	document.getElementById("get-results-span").innerHTML = itemString;
 }
 
 function editTimeClick(){
@@ -72,14 +119,12 @@ function editTimeClick(){
 	if (button.getAttribute("value") == "no-edit"){
 		button.setAttribute("value", "edit");
 		button.innerHTML = "Use current time";
-		document.getElementById("time-input-form").setAttribute("class", "");
-		document.getElementById("date-input-form").setAttribute("class", "");
+		document.getElementById("datetime-input-form").setAttribute("class", "");
 	}	
 	else{
 		button.setAttribute("value", "no-edit");
 		button.innerHTML = "Change time";
-		document.getElementById("time-input-form").setAttribute("class", "hidden");
-		document.getElementById("date-input-form").setAttribute("class", "hidden");
+		document.getElementById("datetime-input-form").setAttribute("class", "hidden");
 	}
 }
 
@@ -95,10 +140,6 @@ function backToMainClickResults(){
 	document.getElementById("get-results-span").innerHTML = "";
 }
 
-function addLocations(){
-	loadLocations(addLocationElements);
-}
-
 function addLocationElements(locations){
 	var locationString = "";
 	var len = locations.length;
@@ -107,7 +148,6 @@ function addLocationElements(locations){
 		locationString += locations[i];
 		locationString += "</option>\n";
 		document.getElementById("location-select").innerHTML += locationString;
-		console.log(locationString);
 	}
 	
 }
@@ -133,6 +173,6 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn-results").addEventListener("click", backToMainClickResults);
 	
-	addLocations();
+	loadLocations(addLocationElements);
 });
 

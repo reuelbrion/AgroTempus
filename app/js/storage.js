@@ -49,10 +49,8 @@ function loadLocations(callBack){
 		if (cursor) {
 			console.info("Found surrogate #" + cursor.value.name + " - " + cursor.value.country);
 			locations.push(cursor.value.name + " - " + cursor.value.country);
-			
 			cursor.continue();
 		}
-		console.log(locations);
 		callBack(locations);
     };
 }
