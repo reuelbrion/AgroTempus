@@ -45,11 +45,35 @@ function forecastsClick(){
 	setSectionVisible("forecasts");
 	makeBackButtonHeaderVisible();
 	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
-	pullForecasts(forecastscallback());
+	pullForecasts(forecastsCallback);
 }
 
 function forecastsCallback(status, receivedItems){
-	
+	if(status == null || status == "ok"){
+		addForecastElements(receivedItems);
+	}
+	else if(status == "error"){
+		//TODO: error handling
+	}
+}
+
+function addForecastElements(receivedItems){
+	var itemString = "Forecasts received: <br><br>";
+	while(receivedItems.length > 0){
+		var receivedObject = JSON.parse(receivedItems.shift());
+		itemString += "Location: " + receivedObject.location + "<br>";
+		itemString += "Lat: " + receivedObject.lat + "<br>";
+		itemString += "Long: " + receivedObject.long + "<br>";
+		itemString += "Temperature: " + receivedObject.temp + "<br>";
+		itemString += "Humidity: " + receivedObject.humidity + "<br>";
+		itemString += "Pressure: " + receivedObject.pressure + "<br>";
+		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
+		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
+		itemString += "Time: " + receivedObject.time + "<br>";
+		itemString += "Date: " + receivedObject.date + "<br>";
+		itemString += "Description: " + receivedObject.description + "<br><br>";
+	}
+	document.getElementById("forecasts-span").innerHTML = itemString;
 }
 
 function predictionClick(){
@@ -91,11 +115,11 @@ function getDataSubmitClick(){
 	pullData(startDate, endDate, getDataCallBack);
 }
 
-function getDataCallBack(error, receivedItems, startDate, endDate){
-	if(error == null){
+function getDataCallBack(status, receivedItems, startDate, endDate){
+	if(status == null || status == "ok"){
 		addGetDataElements(receivedItems, startDate, endDate);
 	}
-	else if(error == "wrongdate"){
+	else if(status == "wrongdate"){
 		alert("start date should be before end date!");
 		getDataClick();
 	}
@@ -116,8 +140,6 @@ function addGetDataElements(receivedItems, startDate, endDate){
 		itemString += "Time: " + receivedObject.time + "<br>";
 		itemString += "Date: " + receivedObject.date + "<br>";
 		itemString += "Source: " + receivedObject.source + "<br><br>";
-		
-		console.log(itemString);
 	}
 	document.getElementById("get-results-span").innerHTML = itemString;
 }
@@ -136,6 +158,46 @@ function editTimeClick(){
 	}
 }
 
+function predictionSubmitClick(){
+	setSectionVisible("prediction-results");
+	document.getElementById("prediction-span").innerHTML = "sending request<br>";
+	var offloadParams = [];
+	offloadParams.variable = $("#prediction-select").val();
+	offloadParams.startDate = $("#prediction-date-input").val();
+	//offload request in offload.js
+	requestOffload(offloadParams, predictionCallBack);
+}
+
+function predictionCallBack(status){
+	if(status == "ok"){
+		document.getElementById("prediction-span").innerHTML = "request has been sent<br> to surrogate<br>";
+	}
+	if(status == null){
+		//TODO: error handling
+	}
+}
+
+function regressionSubmitClick(){
+	setSectionVisible("regression-results");
+	document.getElementById("regression-span").innerHTML = "sending request<br>";
+	var offloadParams = [];
+	offloadParams.variable = $("#regression-variable-select").val();
+	offloadParams.type = $("#regression-type-select").val();
+	offloadParams.startDate = $("#regression-date-input").val();
+	offloadParams.days = $("#regression-days-input").val();
+	//offload request in offload.js
+	requestOffload(offloadParams, regressionCallBack);
+}
+
+function regressionCallBack(status){
+	if(status == "ok"){
+		document.getElementById("regression-span").innerHTML = "request has been sent<br> to surrogate<br>";
+	}
+	if(status == null){
+		//TODO: error handling
+	}
+}
+
 function backToMainClick(){
 	setSectionVisible("main");
 	makeBackButtonHeaderInvisible();
@@ -147,6 +209,8 @@ function backToMainClickResults(){
 	makeBackButtonHeaderInvisible();
 	document.getElementById("get-results-span").innerHTML = "";
 	document.getElementById("forecasts-span").innerHTML = "";
+	document.getElementById("prediction-span").innerHTML = "";
+	document.getElementById("regression-span").innerHTML = "";
 }
 
 function addLocationElements(locations){
@@ -169,18 +233,20 @@ $(document).ready(function () {
 	document.getElementById("forecasts-btn").addEventListener("click", forecastsClick);
 	document.getElementById("prediction-btn").addEventListener("click", predictionClick);
 	document.getElementById("regression-btn").addEventListener("click", regressionClick);
-	
 	document.getElementById("submit-submit-btn").addEventListener("click", editDataSubmitClick);
 	document.getElementById("edit-time-btn").addEventListener("click", editTimeClick);
-	
 	document.getElementById("get-submit-btn").addEventListener("click", getDataSubmitClick);
-		
+	document.getElementById("prediction-submit-btn").addEventListener("click", predictionSubmitClick);
+	document.getElementById("regression-submit-btn").addEventListener("click", regressionSubmitClick);
 	document.getElementById("back-to-main-btn1").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn2").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn6").addEventListener("click", backToMainClickResults);
+	document.getElementById("back-to-main-btn7").addEventListener("click", backToMainClickResults);
+	document.getElementById("back-to-main-btn8").addEventListener("click", backToMainClickResults);
+	
 	loadLocations(addLocationElements);
 });
 

@@ -33,6 +33,7 @@
 		<button class="menu-button" id="forecasts-btn">Forecasts</button>
 		<button class="menu-button" id="prediction-btn">Prediction</button>
 		<button class="menu-button" id="regression-btn">Regression</button>
+		<button class="hidden" id="received-new-btn">*new items*</button>
 	</div>
 </section> 
 <!-- end main screen-->
@@ -89,7 +90,7 @@
 <section id="get-data" class="hidden">
 	<div id="get-data-menu" class="menu-container">
 		<h2>Get data</h2>
-		<form id="submit-form">
+		<form id="get-data-form">
 			<p>
 				Start<br>
 				<input id="get-date-input1" type="date" name="date">
@@ -136,22 +137,95 @@
 <section id="prediction" class="hidden">
 	<div id="prediction-menu" class="menu-container">
 		<h2>Prediction</h2>
+		<form id="prediction-form">
+			<p>
+				What to predict<br>
+				<select id="prediction-select" required="true">
+					<option>Temperature</option>
+					<option>Humidity</option>
+					<option>Pressure</option>
+				</select>
+			</p>
+			<p>
+				Start date<br>
+				<input id="prediction-date-input" type="date" name="date">
+			</p>
+			<p>
+				<button type="button" class="menu-button" id="prediction-submit-btn">Submit</button>
+			</p>
+		</form>
+		
+		<br><br>
 		<button class="menu-button" id="back-to-main-btn4">Back to main menu</button>
 	</div>
 </section> 
 <!-- end prediction screen -->
 
+<!-- start prediction results screen -->
+<section id="prediction-results" class="hidden">
+	<div id="prediction-results-menu" class="menu-container">
+		<h2>Prediction - results</h2>
+		<span id="prediction-span">
+		</span>
+		<br><br>
+		<button class="menu-button" id="back-to-main-btn7">Back to main menu</button>
+	</div>
+</section> 
+<!-- end prediction results screen -->
+
 <!-- start regression screen -->
 <section id="regression" class="hidden">
 	<div id="regression-menu" class="menu-container">
 		<h2>Regression</h2>
+		<form>
+			<p>
+				Perform regression on<br>
+				<select id="regression-variable-select" required="true">
+					<option>Temperature</option>
+					<option>Humidity</option>
+					<option>Pressure</option>
+				</select>
+			</p>
+			<p>
+				Regression type<br>
+				<select id="regression-type-select" required="true">
+					<option>Linear</option>
+				</select>
+			</p>
+			<p>
+				Start date<br>
+				<input id="regression-date-input" type="date" name="date">
+			</p>
+			<p>
+				Extrapolate days<br>
+				<input id="regression-days-input" type="number" placeholder="Days" min="1" max="100" step="1" name="regression-days">
+			</p>
+			<p>
+				<button type="button" class="menu-button" id="regression-submit-btn">Submit</button>
+			</p>
+		</form>
+		
+		<br><br>
 		<button class="menu-button" id="back-to-main-btn5">Back to main menu</button>
 	</div>
 </section> 
 <!-- end regression screen -->
 
+<!-- start regression results screen -->
+<section id="regression-results" class="hidden">
+	<div id="regression-results-menu" class="menu-container">
+		<h2>Regression - results</h2>
+		<span id="regression-span">
+		</span>
+		<br><br>
+		<button class="menu-button" id="back-to-main-btn8">Back to main menu</button>
+	</div>
+</section> 
+<!-- end regression results screen -->
+
 <script type="text/javascript" src="js/storage.js"></script>
 <script type="text/javascript" src="js/dataexchange.js"></script>
+<script type="text/javascript" src="js/offload.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 </body>
 
