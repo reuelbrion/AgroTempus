@@ -43,7 +43,13 @@ function getDataClick(){
 
 function forecastsClick(){
 	setSectionVisible("forecasts");
-	makeBackButtonHeaderVisible();	
+	makeBackButtonHeaderVisible();
+	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
+	pullForecasts(forecastscallback());
+}
+
+function forecastsCallback(status, receivedItems){
+	
 }
 
 function predictionClick(){
@@ -100,6 +106,8 @@ function addGetDataElements(receivedItems, startDate, endDate){
 	while(receivedItems.length > 0){
 		var receivedObject = JSON.parse(receivedItems.shift());
 		itemString += "Location: " + receivedObject.location + "<br>";
+		itemString += "Lat: " + receivedObject.lat + "<br>";
+		itemString += "Long: " + receivedObject.long + "<br>";
 		itemString += "Temperature: " + receivedObject.temp + "<br>";
 		itemString += "Humidity: " + receivedObject.humidity + "<br>";
 		itemString += "Pressure: " + receivedObject.pressure + "<br>";
@@ -138,6 +146,7 @@ function backToMainClickResults(){
 	setSectionVisible("main");
 	makeBackButtonHeaderInvisible();
 	document.getElementById("get-results-span").innerHTML = "";
+	document.getElementById("forecasts-span").innerHTML = "";
 }
 
 function addLocationElements(locations){
@@ -168,11 +177,10 @@ $(document).ready(function () {
 		
 	document.getElementById("back-to-main-btn1").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn2").addEventListener("click", backToMainClick);
-	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn3").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn4").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn5").addEventListener("click", backToMainClick);
-	document.getElementById("back-to-main-btn-results").addEventListener("click", backToMainClickResults);
-	
+	document.getElementById("back-to-main-btn6").addEventListener("click", backToMainClickResults);
 	loadLocations(addLocationElements);
 });
 
