@@ -4,8 +4,8 @@
   "description": "Store and retrieve weather data",
   "launch_path": "/app.html",
   "icons": {
-    "128": "/icon/icon-128.png",
-    "512": "/icon/icon-512.png"
+	"60": "/icon/icon-60.png",
+    "128": "/icon/icon-128.png"    
   },
   "developer": {
     "name": "Reuel Brion",
