@@ -23,3 +23,6 @@ local.properties
 .target
 # TeXlipse plugin
 .texlipse
+#batches with specific paths
+start logcat.bat
+prepare.bat
