@@ -224,7 +224,6 @@ function addLocationElements(locations){
 	}
 	
 }
-	
 
 $(document).ready(function () {
 	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);

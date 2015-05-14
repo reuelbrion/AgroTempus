@@ -13,10 +13,13 @@
   },
   "permissions": {
     "desktop-notification": {
-      "description": "Needed for creating system notifications."
+		"description": "Needed for creating system notifications."
     },
 	"storage": {
         "description": "Required for storing and retrieving data."
-        }
+    },
+	 "tcp-socket" : {
+		"description" : "Create TCP sockets and communicate over them."
+	}
   }
 }
