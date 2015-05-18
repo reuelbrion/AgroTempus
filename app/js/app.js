@@ -102,7 +102,7 @@ var submitForm = document.forms["submit-form"];
 
 function submitCallBack(status){
 	if (status == "ok"){
-		alert("data submitted");
+		console.info("-> data submitted to surrogate");
 	}
 }
 

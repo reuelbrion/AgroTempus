@@ -17,13 +17,21 @@ function stageNewSubmit(stagingObject, callback){
 
 function pushStagedData(){
 	//check for availability in discovery.js
-	var surrogateSocket = getSurrogate("store_weather_data");
+	getSurrogate("store_weather_data", null, pushStagedDataCallback);
+}
+
+function pushStagedDataCallback(surrogateSocket){
+	if(surrogateSocket == null){
+	 //TODO: no surrogate found
+	}
 	
+	
+	/*
 	//TODO: increase/decrease interval 
 	while(stagingList.length > 0){
 		//TODO: push data to surrogate
-		alert("Sending: \n" + stagingList.shift());
 	}
+	*/
 }
 
 function pullData(startDate, endDate, callback){

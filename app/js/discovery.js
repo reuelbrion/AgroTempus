@@ -18,32 +18,49 @@ surrogate = {
 };
 surrogateList.push(surrogate);
 
-function getSurrogate(serviceType){
+function getSurrogate(serviceType, surrogateListClone, callback){
+	//TODO check callback is function
 	if(surrogateList.length < 1){
 		//TODO: try to update surrogate list
-		return null;
+		callback(null);
 	}
-	var surrogateListClone = JSON.parse(JSON.stringify(surrogateList));
-	while(surrogateListClone.length > 0){
-		var chosenSurrogate = getHighestWeightSurrogate(surrogateListClone);
-		surrogateListClone.splice(surrogateListClone.indexOf(chosenSurrogate), 1);
-		{console.log("blabla\nagjhdfsiughsdkgs\n\n\n\n");
-		var socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, chosenSurrogate.port);
+	if(surrogateListClone == null){
+		var surrogateListClone = JSON.parse(JSON.stringify(surrogateList));
+	}
+	if(surrogateListClone.length < 1){
+		callback(null);
+	}
+	var socket = null;
+	
+	var chosenSurrogate = getHighestWeightSurrogate(surrogateListClone);
+	surrogateListClone.splice(surrogateListClone.indexOf(chosenSurrogate), 1);
+	socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, chosenSurrogate.port);
+	
+	socket.onerror = function(event){
+		console.info("-> opening surrogate socket failed for: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
+		getSurrogate(serviceType, surrogateListClone, callback);
+	}
+	
+	socket.onopen = function(event){
+		console.info("-> connection to surrogate opened: " + socket.port + "\n" + socket.host + "\n");	
 		socket.onerror = function(event){
-			console.info("-> opening surrogate socket failed for: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
+			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
 		}
-		socket.onopen = function onOpenForGetSurrogate(event){
-			console.info("-> connection to surrogate opened: " + socket.port + "\n" + socket.host + "\n" + event.data.name);
-			
-		}
+		chosenSurrogate.weight++;
+		//TODO: weight algorithm
+		var sendStr = "request-service:" + serviceType + "\nEND\n";
+		sendStr = sendStr.toString('utf-8');
+		socket.send(sendStr);
+		//callback(socket);
+	}
+	
+	/*
+		
 		while(socket.readyState == "connecting"){console.log("blabla\n");}
 		if(socket.readyState == "open"){
-			var sendStr = "request-service:" + serviceType + "\nEND\n";
-			sendStr = data.toString('utf-8');
-			socket.send(sendStr);
-		}
-	}
-		
+			
+		}*/
+	callback(null);
 }
 
 function getHighestWeightSurrogate(inList){
