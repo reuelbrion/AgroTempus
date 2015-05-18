@@ -8,6 +8,7 @@ setInterval(pushStagedData, retryStagingInterval);
 function stageNewSubmit(stagingObject, callback){		
 	var stagingString = JSON.stringify(stagingObject);
 	stagingList.push(stagingString);
+	pushStagedData();
 	var status = "ok";
 	//TODO: try to push one time
 	//TODO: return success/failure messages
@@ -15,7 +16,9 @@ function stageNewSubmit(stagingObject, callback){
 }
 
 function pushStagedData(){
-	//TODO: check for availability of surrogate
+	//check for availability in discovery.js
+	var surrogateSocket = getSurrogate("store_weather_data");
+	
 	//TODO: increase/decrease interval 
 	while(stagingList.length > 0){
 		//TODO: push data to surrogate

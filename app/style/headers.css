@@ -47,7 +47,6 @@ section[role="region"] > header:first-child menu {
 
 section[role="region"] > header:first-child a,
 section[role="region"] > header:first-child button {
-  box-sizing: border-box;
   position: relative;
   display: block;
   overflow: hidden;

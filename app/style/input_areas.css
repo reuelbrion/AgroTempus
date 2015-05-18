@@ -11,7 +11,6 @@ input[type="url"],
 input[type="number"],
 textarea {
   font-family: sans-serif;
-  box-sizing: border-box;
   display: inline-block;
   width: 60%;
   height: 2rem;
@@ -45,7 +44,6 @@ select {
   line-height: 2rem;
   display: inline-block;
   width: 80%;
-  box-sizing: border-box;
   padding: 0 1.5rem;
   font-size: 1.6rem;
   border: 0.1rem solid #c7c7c7;
@@ -146,7 +144,6 @@ input[type="datetime"],
 input[type="datetime-local"] {
   border: 0.1rem solid #c7c7c7;
   width: 7rem;
-  box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1rem;
@@ -396,7 +393,6 @@ form button::-moz-focus-inner {
 /* .bb-editable - e.g email & SMS recipients */
 .bb-editable [contenteditable] {
   display: inline-block;
-  box-sizing: border-box;
   position: relative;
   max-width: calc(100% - 1.4rem);
   overflow: hidden;
