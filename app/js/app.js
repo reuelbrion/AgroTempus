@@ -95,14 +95,18 @@ var submitForm = document.forms["submit-form"];
 	stagingObject.pressure = submitForm["pressure-input"].value;
 	stagingObject.windspeed = submitForm["wind-speed-input"].value;
 	stagingObject.winddegree = submitForm["wind-deg-input"].value;
-	stagingObject.time = submitForm["datetime-input"].value;
+	if(submitForm["datetime-input"].value == ""){
+		stagingObject.time = Date.now();
+	} else {
+		stagingObject.time = submitForm["datetime-input"].value;
+	}
 	stagingObject.source = "app";
 	stageNewSubmit(stagingObject, submitCallBack);
 }
 
 function submitCallBack(status){
 	if (status == "ok"){
-		console.info("-> data submitted to surrogate");
+		console.info("-> weather data added to outbound queue");
 	}
 }
 

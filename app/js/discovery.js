@@ -1,19 +1,21 @@
 "use strict";
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
-var surrogate = {
+/*var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
-	"IP" : "195.240.53.111",
-	"port" : 11112,
+	"IP" : "196.239.52.212",
+	"storageServerPort" : 11112,
+	"requestServerPort" : 11113,
 	"weight" : 1
 };
-surrogateList.push(surrogate);
-surrogate = {
+surrogateList.push(surrogate);*/
+var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
 	"IP" : "195.240.53.133",
-	"port" : 11112,
+	"storageServerPort" : 11112,
+	"requestServerPort" : 11113,
 	"weight" : 0
 };
 surrogateList.push(surrogate);
@@ -24,43 +26,50 @@ function getSurrogate(serviceType, surrogateListClone, callback){
 		//TODO: try to update surrogate list
 		callback(null);
 	}
-	if(surrogateListClone == null){
-		var surrogateListClone = JSON.parse(JSON.stringify(surrogateList));
+	if(surrogateListClone == null || surrogateListClone === undefined){
+		surrogateListClone = JSON.parse(JSON.stringify(surrogateList));
 	}
 	if(surrogateListClone.length < 1){
 		callback(null);
 	}
-	var socket = null;
 	
 	var chosenSurrogate = getHighestWeightSurrogate(surrogateListClone);
 	surrogateListClone.splice(surrogateListClone.indexOf(chosenSurrogate), 1);
-	socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, chosenSurrogate.port);
+	var surrogatePort = getSurrogatePort(serviceType, chosenSurrogate);
+	var socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, surrogatePort);
 	
+	//establishing connection fails
 	socket.onerror = function(event){
 		console.info("-> opening surrogate socket failed for: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
 		getSurrogate(serviceType, surrogateListClone, callback);
 	}
+	//end establishing connection fails
 	
+	//start connection
 	socket.onopen = function(event){
 		console.info("-> connection to surrogate opened: " + socket.port + "\n" + socket.host + "\n");	
+		//TODO: when connection breaks after a connection existed, we probably want to try again with the same surrogate.
 		socket.onerror = function(event){
 			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
+			surrogateListClone.push(chosenSurrogate);
+			getSurrogate(serviceType, surrogateListClone, callback);
 		}
 		chosenSurrogate.weight++;
 		//TODO: weight algorithm
-		var sendStr = "request-service:" + serviceType + "\nEND\n";
+		var sendStr = "request-service\n" + serviceType + "\n";
 		sendStr = sendStr.toString('utf-8');
 		socket.send(sendStr);
-		//callback(socket);
-	}
-	
-	/*
 		
-		while(socket.readyState == "connecting"){console.log("blabla\n");}
-		if(socket.readyState == "open"){
-			
-		}*/
-	callback(null);
+		//when receiving data
+		socket.ondata = function (event) {
+			if (typeof event.data === 'string' && event.data == "ok\n") {
+				callback(socket);
+			} else {
+				getSurrogate(serviceType, surrogateListClone, callback);
+			}
+		}
+	}
+	//end connection
 }
 
 function getHighestWeightSurrogate(inList){
@@ -74,8 +83,17 @@ function getHighestWeightSurrogate(inList){
 	return chosenSurrogate;
 }
 
-
-
-	// Each time the buffer is flushed
-	// we try to send data again.
-	//socket.ondrain = pushData;
+function getSurrogatePort(serviceType, surrogate){
+	//TODO: checking for correct input
+	var port = "unknown";
+	if(serviceType == "store_weather_data"){
+		port = surrogate.storageServerPort;
+	}
+	else if(serviceType == "retrieve_regional_data"){
+		port = surrogate.requestServerPort;
+	}
+	else if(serviceType == "retrieve_computation_results"){
+		port = surrogate.requestServerPort;
+	}
+	return port;
+}

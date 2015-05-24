@@ -1,28 +1,56 @@
 "use strict";
 
 var stagingList = [];
-var retryStagingInterval = 30000; //ms
+var retryStagingInterval = 10000; //ms
 
-setInterval(pushStagedData, retryStagingInterval);
+//TODO: setInterval doesnt seem to work
+var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 
 function stageNewSubmit(stagingObject, callback){		
 	var stagingString = JSON.stringify(stagingObject);
 	stagingList.push(stagingString);
 	pushStagedData();
 	var status = "ok";
-	//TODO: try to push one time
 	//TODO: return success/failure messages
 	callback(status);
 }
 
 function pushStagedData(){
-	//check for availability in discovery.js
-	getSurrogate("store_weather_data", null, pushStagedDataCallback);
+	if(stagingList.length > 0){
+		//in discovery.js
+		getSurrogate("store_weather_data", null, pushStagedDataCallback);
+	}
 }
 
 function pushStagedDataCallback(surrogateSocket){
 	if(surrogateSocket == null){
 	 //TODO: no surrogate found
+	}
+	else{
+		var sendStr = "";
+		console.info("Ready to send weather data.");
+		for(var i = 0; i < stagingList.length; i++){
+			sendStr += stagingList[i];
+		}
+		sendStr+="\nEND\n";
+		console.info("Sent:\n" + sendStr);
+		surrogateSocket.send(sendStr.toString('utf-8'));
+		socket.ondata = function (event) {
+			if (typeof event.data === 'string' && event.data == "ok\n") {
+				stagingList = [];
+				surrogateSocket.onclose = function (event) {
+					alert("All weather data saved on surrogate.");
+				}
+			} else {
+				surrogateSocket.onclose = function (event) {
+					alert("Not all weather data saved on surrogate, will try again later.");
+				}
+			}
+		}
+		
+		//in app.js:
+		backToMainClick();
+		surrogateSocket.close();
 	}
 	
 	
