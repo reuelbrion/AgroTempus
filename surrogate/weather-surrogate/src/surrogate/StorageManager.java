@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.json.simple.JSONObject;
 
 public class StorageManager implements Runnable {
-	private static final long SLEEP_TIME_PER_CYCLE = 10000;
+	private static final long SLEEP_TIME_PER_CYCLE = 3000;
 	
 	public volatile boolean running;
 	public final ConcurrentLinkedQueue<JSONObject> weatherStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
@@ -39,6 +39,7 @@ public class StorageManager implements Runnable {
 	}
 
 	private void handleRegionalRequest(RegionalRequest request) {
+		System.out.println("Creating response for regional data request. @Storage Manager");
 		ArrayList<JSONObject> response = new ArrayList<JSONObject>();
 		for(JSONObject obj : storedWeatherObjects){
 			long time = (long)obj.get("time");

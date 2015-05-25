@@ -2,6 +2,7 @@
 
 var stagingList = [];
 var retryStagingInterval = 10000; //ms
+var requestedDataCallback = null;
 
 //TODO: setInterval doesnt seem to work
 var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
@@ -16,6 +17,7 @@ function stageNewSubmit(stagingObject, callback){
 }
 
 function pushStagedData(){
+	clearInterval(interval);
 	if(stagingList.length > 0){
 		//in discovery.js
 		getSurrogate("store_weather_data", null, pushStagedDataCallback, null);
@@ -32,9 +34,9 @@ function pushStagedDataCallback(surrogateSocket, args){
 		for(var i = 0; i < stagingList.length; i++){
 			sendStr += stagingList[i];
 		}
-		sendStr+="\nEND\n";
-		console.info("Sent:\n" + sendStr);
+		sendStr+="\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));
+		console.info("Sent:\n" + sendStr);
 		surrogateSocket.ondata = function (event) {
 			if (typeof event.data === 'string' && event.data == "ok\n") {
 				stagingList = [];
@@ -47,6 +49,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 				}
 			}
 			surrogateSocket.close();
+			interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 		}
 	}	
 	/*
@@ -70,24 +73,8 @@ function pullData(startDate, endDate, callback){
 	var args = [startDate, endDate];
 	//in discovery.js
 	getSurrogate("retrieve_regional_data", null, pullDataCallback, args);
-	/*
-	//TODO: get Data from surrogate, this is dummy data
-	
-	receivedObject.location = "Amsterdam - NL";
-	receivedObject.lat = 52.379;
-	receivedObject.long = 4.899;
-	receivedObject.temp = 15.7;
-	receivedObject.humidity = 20;
-	receivedObject.pressure = 400;
-	receivedObject.windspeed = 50;
-	receivedObject.winddegree = 180;
-	var nowDate = new Date();
-	receivedObject.time = nowDate.toTimeString();
-	receivedObject.date = nowDate.toDateString();
-	receivedObject.source = "Open Weather Map";
-	var receivedItems = [];
-	receivedItems.push(JSON.stringify(receivedObject));
-	*/
+	callback("requesting");
+	requestedDataCallback = callback;
 }
 
 function pullDataCallback(surrogateSocket, args){
@@ -96,20 +83,23 @@ function pullDataCallback(surrogateSocket, args){
 	}
 	else{
 		console.info("Ready to request regional data.");
-		var sendStr = args[0].getTime() + "\n" + args[1].getTime() + "\nEND\n";
+		var sendStr = args[0].getTime() + "\n" + args[1].getTime() + "\n";
 		console.info("Request sent:\n" + sendStr);
 		surrogateSocket.send(sendStr.toString('utf-8'));
 	}
-	var receivedObject = new Object();
 	surrogateSocket.ondata = function (event) {
 			if (typeof event.data === 'string') {
-				console.log(JSON.parse(event.data));
+				var sendStr = "ok\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				var inData = event.data;
 				surrogateSocket.onclose = function (event) {
-					
+					requestedDataCallback("ready", inData, args);
 				}
 			} else {
+				var sendStr = "unknown\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
 				surrogateSocket.onclose = function (event) {
-					
+					requestedDataCallback("failed");
 				}
 			}
 			surrogateSocket.close();

@@ -133,32 +133,23 @@ public class StorageServerWorker implements Runnable {
 	}
 
 	private boolean storeWeatherData(BufferedReader in, int serviceType) {
-		System.out.println("Receiving weather data. Storage worker.");
-		boolean receiving = true;
-		boolean success = false;
+		System.out.println("Receiving weather data. @Storage worker.");
 		String inputLine;
 		String receivedString = "";
-		while(receiving){
-			try {
-				if ((inputLine = in.readLine()) != null) {
-					if (inputLine.equals("END")){
-						receiving = false;
-					}
-					else{
-						receivedString += inputLine;
-					}
-				}
-			} catch (IOException e) {
-				System.out.println("Error with BufferedWriter. Storage worker.");
-				e.printStackTrace();
-				receiving = false;
+		try {
+			if ((inputLine = in.readLine()) != null) {
+				receivedString += inputLine;
 			}
+		} catch (IOException e) {
+			System.out.println("Error with BufferedWriter. Storage worker.");
+			e.printStackTrace();
+			return false;
 		}
 		ArrayList<JSONObject> parsedJSON = parseJSON(receivedString);
 		if(parsedJSON != null){
-			success = sendToStorageManager(parsedJSON, serviceType);
+			return sendToStorageManager(parsedJSON, serviceType);
 		}
-		return success;
+		return false;
 	}
 
 	private boolean sendToStorageManager(ArrayList<JSONObject> parsedJSON, int serviceType) {

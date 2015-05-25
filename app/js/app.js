@@ -122,20 +122,25 @@ function getDataSubmitClick(){
 	pullData(startDate, endDate, getDataCallback);
 }
 
-function getDataCallback(status){
-	if(status == null || status == "ok"){
+function getDataCallback(status, inData, args){
+	if(status == null || status == "requesting"){
 		document.getElementById("get-results-span").innerHTML = "retrieving data<br>";
-		//addGetDataElements(receivedItems, startDate, endDate);
 	}
 	else if(status == "wrongdate"){
 		alert("start date should be before end date!");
 		getDataClick();
 	}
+	else if(status == "ready"){
+		addGetDataElements(inData, args[0], args[1]);
+	}
+	else if(status == "failed"){
+		document.getElementById("get-results-span").innerHTML = "failed getting data<br>";
+	}
 }
 
 function addGetDataElements(receivedItems, startDate, endDate){
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
-	while(receivedItems.length > 0){
+	/*while(receivedItems.length > 0){
 		var receivedObject = JSON.parse(receivedItems.shift());
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
@@ -148,7 +153,8 @@ function addGetDataElements(receivedItems, startDate, endDate){
 		itemString += "Time: " + receivedObject.time + "<br>";
 		itemString += "Date: " + receivedObject.date + "<br>";
 		itemString += "Source: " + receivedObject.source + "<br><br>";
-	}
+	}*/
+	itemString += receivedItems;
 	document.getElementById("get-results-span").innerHTML = itemString;
 }
 
