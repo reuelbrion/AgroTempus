@@ -20,7 +20,7 @@ var surrogate = {
 };
 surrogateList.push(surrogate);
 
-function getSurrogate(serviceType, surrogateListClone, callback){
+function getSurrogate(serviceType, surrogateListClone, callback, args){
 	//TODO check callback is function
 	if(surrogateList.length < 1){
 		//TODO: try to update surrogate list
@@ -48,11 +48,11 @@ function getSurrogate(serviceType, surrogateListClone, callback){
 	//start connection
 	socket.onopen = function(event){
 		console.info("-> connection to surrogate opened: " + socket.port + "\n" + socket.host + "\n");	
-		//TODO: when connection breaks after a connection existed, we probably want to try again with the same surrogate.
+		//TODO: when connection breaks after a connection existed, we probably want to try again more than once with the same surrogate.
 		socket.onerror = function(event){
 			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
 			surrogateListClone.push(chosenSurrogate);
-			getSurrogate(serviceType, surrogateListClone, callback);
+			getSurrogate(serviceType, surrogateListClone, callback, args);
 		}
 		chosenSurrogate.weight++;
 		//TODO: weight algorithm
@@ -60,12 +60,12 @@ function getSurrogate(serviceType, surrogateListClone, callback){
 		sendStr = sendStr.toString('utf-8');
 		socket.send(sendStr);
 		
-		//when receiving data
+		//check if surrogate provides this service
 		socket.ondata = function (event) {
 			if (typeof event.data === 'string' && event.data == "ok\n") {
-				callback(socket);
+				callback(socket, args);
 			} else {
-				getSurrogate(serviceType, surrogateListClone, callback);
+				getSurrogate(serviceType, surrogateListClone, callback, args);
 			}
 		}
 	}

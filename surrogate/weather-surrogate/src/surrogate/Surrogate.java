@@ -11,6 +11,8 @@ public class Surrogate {
 		storageManagerThread.start();
 		Thread storageServer = new Thread(new StorageServer(storageManager));
 		storageServer.start();
+		Thread requestServer = new Thread(new RequestServer(storageManager));
+		requestServer.start();
 	}
 
 }

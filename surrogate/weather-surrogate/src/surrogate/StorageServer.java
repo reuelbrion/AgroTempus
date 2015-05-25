@@ -8,7 +8,7 @@ public class StorageServer implements Runnable {
 	final static int SERVER_PORT = 11112;
 	
 	public volatile boolean running;
-	StorageManager storageManager;
+	public volatile StorageManager storageManager;
 	
 	StorageServer(StorageManager storageManager){
 		this.storageManager = storageManager;
@@ -20,9 +20,9 @@ public class StorageServer implements Runnable {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
-            System.out.println("Server socket successfully opened. Storage server.");
+            System.out.println("Server socket successfully opened. @Storage server.");
         } catch (IOException e) {
-            System.err.println("Could not listen on port: " + SERVER_PORT + ".");
+            System.err.println("Could not listen on port: " + SERVER_PORT + ". @Storage server.");
             running = false;
         }
 
@@ -30,12 +30,12 @@ public class StorageServer implements Runnable {
         	Socket acceptSocket = null;
             try {
                 acceptSocket = serverSocket.accept();
-                System.out.println("connection from mobile accepted. Storage server.");
+                System.out.println("connection from mobile accepted. @Storage server.");
                 Thread newThread = new Thread(new StorageServerWorker(acceptSocket, storageManager));
                 threadList.add(newThread);
                 newThread.start();
             } catch (IOException e) {
-                System.err.println("Accept failed.");
+                System.err.println("Accept failed. @Storage server");
             }
             
         }   

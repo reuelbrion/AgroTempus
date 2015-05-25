@@ -10,6 +10,11 @@ public class RequestServer implements Runnable {
 final static int SERVER_PORT = 11113;
 
 public volatile boolean running;
+public volatile StorageManager storageManager;
+
+RequestServer(StorageManager storageManager){
+	this.storageManager = storageManager;
+}
 	
 	@Override
 	public void run() {
@@ -18,7 +23,7 @@ public volatile boolean running;
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
-            System.out.println("Server socket successfully opened . Request server.");
+            System.out.println("Server socket successfully opened. @Request server.");
         } catch (IOException e) {
             System.err.println("Could not listen on port: " + SERVER_PORT + ".");
             running = false;
@@ -28,12 +33,12 @@ public volatile boolean running;
         	Socket acceptSocket = null;
             try {
                 acceptSocket = serverSocket.accept();
-                System.out.println("connection from mobile accepted. Request server.");
-                Thread newThread = new Thread(new RequestServerWorker(acceptSocket));
+                System.out.println("connection from mobile accepted. @Request server.");
+                Thread newThread = new Thread(new RequestServerWorker(acceptSocket, storageManager));
                 threadList.add(newThread);
                 newThread.start();
             } catch (IOException e) {
-                System.err.println("Accept failed. Request server.");
+                System.err.println("Accept failed. @Request server.");
             }
         }  
 	}

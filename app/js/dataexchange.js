@@ -18,11 +18,11 @@ function stageNewSubmit(stagingObject, callback){
 function pushStagedData(){
 	if(stagingList.length > 0){
 		//in discovery.js
-		getSurrogate("store_weather_data", null, pushStagedDataCallback);
+		getSurrogate("store_weather_data", null, pushStagedDataCallback, null);
 	}
 }
 
-function pushStagedDataCallback(surrogateSocket){
+function pushStagedDataCallback(surrogateSocket, args){
 	if(surrogateSocket == null){
 	 //TODO: no surrogate found
 	}
@@ -35,7 +35,7 @@ function pushStagedDataCallback(surrogateSocket){
 		sendStr+="\nEND\n";
 		console.info("Sent:\n" + sendStr);
 		surrogateSocket.send(sendStr.toString('utf-8'));
-		socket.ondata = function (event) {
+		surrogateSocket.ondata = function (event) {
 			if (typeof event.data === 'string' && event.data == "ok\n") {
 				stagingList = [];
 				surrogateSocket.onclose = function (event) {
@@ -46,14 +46,9 @@ function pushStagedDataCallback(surrogateSocket){
 					alert("Not all weather data saved on surrogate, will try again later.");
 				}
 			}
+			surrogateSocket.close();
 		}
-		
-		//in app.js:
-		backToMainClick();
-		surrogateSocket.close();
-	}
-	
-	
+	}	
 	/*
 	//TODO: increase/decrease interval 
 	while(stagingList.length > 0){
@@ -72,8 +67,12 @@ function pullData(startDate, endDate, callback){
 	if (startDate > endDate){
 		callback("wrongdate");
 	}
+	var args = [startDate, endDate];
+	//in discovery.js
+	getSurrogate("retrieve_regional_data", null, pullDataCallback, args);
+	/*
 	//TODO: get Data from surrogate, this is dummy data
-	var receivedObject = new Object();
+	
 	receivedObject.location = "Amsterdam - NL";
 	receivedObject.lat = 52.379;
 	receivedObject.long = 4.899;
@@ -88,8 +87,33 @@ function pullData(startDate, endDate, callback){
 	receivedObject.source = "Open Weather Map";
 	var receivedItems = [];
 	receivedItems.push(JSON.stringify(receivedObject));
-	
-	callback(null, receivedItems, startDate, endDate);
+	*/
+}
+
+function pullDataCallback(surrogateSocket, args){
+	if(surrogateSocket == null){
+		//TODO: no surrogate found
+	}
+	else{
+		console.info("Ready to request regional data.");
+		var sendStr = args[0].getTime() + "\n" + args[1].getTime() + "\nEND\n";
+		console.info("Request sent:\n" + sendStr);
+		surrogateSocket.send(sendStr.toString('utf-8'));
+	}
+	var receivedObject = new Object();
+	surrogateSocket.ondata = function (event) {
+			if (typeof event.data === 'string') {
+				console.log(JSON.parse(event.data));
+				surrogateSocket.onclose = function (event) {
+					
+				}
+			} else {
+				surrogateSocket.onclose = function (event) {
+					
+				}
+			}
+			surrogateSocket.close();
+		}
 }
 
 function pullForecasts(callback){

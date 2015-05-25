@@ -50,28 +50,13 @@ public class StorageServerWorker implements Runnable {
 	        }
 	        else{
 	        	handleFailed();
-	        }
-	        
-	        try {
-				clientSocket.close();
-				System.out.println("Closing connection to mobile device. Storage worker.");
-			} catch (IOException e) {
-				System.out.println("Error closing client socket. Storage worker.");
-				e.printStackTrace();
-			}
+	        }  
 		}
-	}
-
-	private void handleSuccess() {
-		
-    	try {
-    		if(out == null){
-    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-    		}
-			out.write("ok\n");
-			out.flush();
+		try {
+			clientSocket.close();
+			System.out.println("Closing connection to mobile device. Storage worker.");
 		} catch (IOException e) {
-			System.out.println("Error opening BufferedWriter. Storage worker.");
+			System.out.println("Error closing client socket. Storage worker.");
 			e.printStackTrace();
 		}
 	}
@@ -88,6 +73,20 @@ public class StorageServerWorker implements Runnable {
 			e.printStackTrace();
 		}
 		System.out.println("Unknow message from mobile. Closing thread. Storage worker.");
+	}
+
+	private void handleSuccess() {
+		
+    	try {
+    		if(out == null){
+    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+    		}
+			out.write("ok\n");
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("Error opening BufferedWriter. Storage worker.");
+			e.printStackTrace();
+		}
 	}
 	
 	private void handleFailed() {
@@ -194,7 +193,6 @@ public class StorageServerWorker implements Runnable {
 		JSONParser parser = new JSONParser();
 		ArrayList<JSONObject> output = new ArrayList<JSONObject>();
 		String[] JSONStrings = receivedString.split("(?<=})");
-		int i = 0;	
 		if(JSONStrings.length < 1){
 			System.out.println("Error with JSON parsing, received empty string. Storage worker. String:\n" + receivedString);
 			return null;
@@ -203,7 +201,6 @@ public class StorageServerWorker implements Runnable {
 			try {
 				if(!JSONString.isEmpty()){
 					output.add((JSONObject)parser.parse(JSONString));
-					i++;
 				}
 			} catch (ParseException e) {
 				System.out.println("Error with JSON parsing, nothing was stored. Storage worker. String:\n" + receivedString);

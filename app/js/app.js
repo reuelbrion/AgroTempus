@@ -107,21 +107,25 @@ var submitForm = document.forms["submit-form"];
 function submitCallBack(status){
 	if (status == "ok"){
 		console.info("-> weather data added to outbound queue");
+		//TODO: show that data has been submitted on app screen
+		backToMainClick();
 	}
 }
 
 function getDataSubmitClick(){
 	setSectionVisible("get-data-results");
-	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
 	var startDate = $("#get-date-input1").val();
 	var endDate = $("#get-date-input2").val();
+	startDate = new Date(startDate);
+	endDate = new Date(endDate);
 	//pull data in dataexchange.js
-	pullData(startDate, endDate, getDataCallBack);
+	pullData(startDate, endDate, getDataCallback);
 }
 
-function getDataCallBack(status, receivedItems, startDate, endDate){
+function getDataCallback(status){
 	if(status == null || status == "ok"){
-		addGetDataElements(receivedItems, startDate, endDate);
+		document.getElementById("get-results-span").innerHTML = "retrieving data<br>";
+		//addGetDataElements(receivedItems, startDate, endDate);
 	}
 	else if(status == "wrongdate"){
 		alert("start date should be before end date!");

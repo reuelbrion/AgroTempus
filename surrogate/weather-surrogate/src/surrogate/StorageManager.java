@@ -10,7 +10,8 @@ public class StorageManager implements Runnable {
 	
 	public volatile boolean running;
 	public final ConcurrentLinkedQueue<JSONObject> weatherStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
-	final private ArrayList<JSONObject> storedWeatherObjects = new ArrayList<JSONObject>();	
+	public final ConcurrentLinkedQueue<RegionalRequest> regionalRequestQueue = new ConcurrentLinkedQueue<RegionalRequest>();
+	private final ArrayList<JSONObject> storedWeatherObjects = new ArrayList<JSONObject>();	
 	
 	public void run() {
 		running = true;
@@ -19,15 +20,33 @@ public class StorageManager implements Runnable {
 				JSONObject obj = weatherStorageQueue.poll();
 				if(obj != null){
 					storedWeatherObjects.add(obj);
-					System.out.println("Saved JSON object to storage. Storage manager.\n" + obj.toString());
+					System.out.println("Saved JSON object to storage. @Storage manager.\n" + obj.toString());
+				}
+			}
+			if(!regionalRequestQueue.isEmpty()){
+				RegionalRequest request = regionalRequestQueue.poll();
+				if(request != null){
+					handleRegionalRequest(request);
 				}
 			}
 			try {
 				Thread.sleep(SLEEP_TIME_PER_CYCLE);
 			} catch (InterruptedException e) {
-				System.out.println("Couldn't sleep. Storage Manager.");
+				System.out.println("Couldn't sleep. @Storage Manager.");
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private void handleRegionalRequest(RegionalRequest request) {
+		ArrayList<JSONObject> response = new ArrayList<JSONObject>();
+		for(JSONObject obj : storedWeatherObjects){
+			long time = (long)obj.get("time");
+			if(time >= request.start && time < request.end){
+				response.add(obj);
+			}
+		}
+		request.response = response;
+		request.ready = true;
 	}
 }
