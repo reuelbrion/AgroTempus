@@ -3,6 +3,7 @@
 var stagingList = [];
 var retryStagingInterval = 10000; //ms
 var requestedDataCallback = null;
+var requestedForecastsCallback = null;
 
 //TODO: setInterval doesnt seem to work
 var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
@@ -29,12 +30,15 @@ function pushStagedDataCallback(surrogateSocket, args){
 	 //TODO: no surrogate found
 	}
 	else{
-		var sendStr = "";
+		var sendStr = "[";
 		console.info("Ready to send weather data.");
 		for(var i = 0; i < stagingList.length; i++){
+			if(i > 0){
+				sendStr += ",";
+			}
 			sendStr += stagingList[i];
 		}
-		sendStr+="\n";
+		sendStr+="]\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));
 		console.info("Sent:\n" + sendStr);
 		surrogateSocket.ondata = function (event) {
@@ -110,36 +114,33 @@ function pullForecasts(callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
-	//TODO: get Forecasts from surrogate, this is dummy data
-	var receivedObject = new Object();
-	receivedObject.location = "Amsterdam - NL";
-	receivedObject.lat = 52.379;
-	receivedObject.long = 4.899;
-	receivedObject.temp = 5;
-	receivedObject.humidity = 60;
-	receivedObject.pressure = 550;
-	receivedObject.windspeed = 30;
-	receivedObject.winddegree = 135;
-	var nowDate = new Date();
-	receivedObject.time = nowDate.toTimeString();
-	receivedObject.date = nowDate.toDateString();
-	receivedObject.description = "Sunny day";
-	var receivedObject2 = new Object();
-	receivedObject2.location = "Amsterdam - NL";
-	receivedObject2.lat = 52.379;
-	receivedObject2.long = 4.899;
-	receivedObject2.temp = 6;
-	receivedObject2.humidity = 67;
-	receivedObject2.pressure = 551;
-	receivedObject2.windspeed = 31;
-	receivedObject2.winddegree = 120;
-	var nowDate = new Date();
-	receivedObject2.time = nowDate.toTimeString();
-	receivedObject2.date = nowDate.toDateString();
-	receivedObject2.description = "Rainy day";
-	var receivedItems = [];
-	receivedItems.push(JSON.stringify(receivedObject));
-	receivedItems.push(JSON.stringify(receivedObject2));
-	
-	callback(null, receivedItems);
+	getSurrogate("retrieve_forecasts", null, pullForecastsCallback, null);
+	callback("requesting");
+	requestedForecastsCallback = callback;
+}
+
+function pullForecastsCallback(surrogateSocket){
+	if(surrogateSocket == null){
+		//TODO: no surrogate found
+	}
+	else{
+		console.info("Ready to request forecast data.");
+	}
+	surrogateSocket.ondata = function (event) {
+			if (typeof event.data === 'string') {
+				var sendStr = "ok\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				var inData = event.data;
+				surrogateSocket.onclose = function (event) {
+					requestedForecastCallback("ready", inData);
+				}
+			} else {
+				var sendStr = "unknown\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				surrogateSocket.onclose = function (event) {
+					requestedForecastCallback("failed");
+				}
+			}
+			surrogateSocket.close();
+		}
 }

@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
 
 public class RequestServerWorker implements Runnable {
-	private static final long SLEEP_TIME_REGIONAL_REQUEST = 3000;
+	private static final long SLEEP_TIME_REGIONAL_REQUEST = 1000;
+	private static final long SLEEP_TIME_FORECAST_REQUEST = 1000;
 	protected Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
@@ -78,7 +80,7 @@ public class RequestServerWorker implements Runnable {
 	}
 
 	private boolean handleServiceRequest(BufferedReader in) {
-    	System.out.println("Reading service request. Request worker.");
+    	System.out.println("Reading service request. @Request worker.");
     	String inputLine;
     	boolean success = false;
     	try {
@@ -90,6 +92,14 @@ public class RequestServerWorker implements Runnable {
 					out.write("ok\n");
 					out.flush();
 					success = getRegionalData(in, out);
+			    }
+				else if(inputLine.equals("retrieve_forecasts")){
+					if(out == null){
+		    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+		    		}
+					out.write("ok\n");
+					out.flush();
+					success = getForecastsFromStorageManager(in, out);
 			    }
 				else if(inputLine.equals("retrieve_computation_results")){
 					if(out == null){
@@ -135,25 +145,39 @@ public class RequestServerWorker implements Runnable {
 		return getRequestDataFromStorageManager(start, end, in, out);
 	}
 
+	private boolean getForecastsFromStorageManager(BufferedReader in, BufferedWriter out) {
+		ArrayList<JSONObject> list = null;
+		try{
+			ForecastRequest request = new ForecastRequest(this);
+			storageManager.forecastRequestQueue.add(request);
+			while(!request.ready){
+				Thread.sleep(SLEEP_TIME_FORECAST_REQUEST);
+			}
+			list = request.response;
+		} catch (Exception e) {
+			System.out.println("Error getting forecast data from Storage manager. @Request worker.");
+			e.printStackTrace();
+			return false;
+		}
+		return sendRequestData(list, in, out);
+	}
+
 	private boolean getRequestDataFromStorageManager(long start, long end,
 			BufferedReader in, BufferedWriter out) {
-		String storedData = "";
+		ArrayList<JSONObject> list = null;
 		try{
 			RegionalRequest request = new RegionalRequest(start, end, this);
 			storageManager.regionalRequestQueue.add(request);
 			while(!request.ready){
 				Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
 			}
-			for(JSONObject obj : request.response){
-				storedData += obj.toJSONString();
-			}
-			storedData += "\n";
+			list = request.response;
 		} catch (Exception e) {
-			System.out.println("Error getting data from Storage manager. @Request worker.");
+			System.out.println("Error getting weather data from Storage manager. @Request worker.");
 			e.printStackTrace();
 			return false;
 		}
-		return sendRequestData(storedData, in, out);
+		return sendRequestData(list, in, out);
 	}
 
 	private boolean getComputationResults(BufferedReader in, BufferedWriter out) {
@@ -161,9 +185,10 @@ public class RequestServerWorker implements Runnable {
 		return false;
 	}
 
-	private boolean sendRequestData(String sendStr, BufferedReader in,
+	private boolean sendRequestData(ArrayList<JSONObject> list, BufferedReader in,
 			BufferedWriter out) {
 		//TODO: handle timeout in response
+			String sendStr = createSendString(list);
 		try {
 			out.write(sendStr);
 			out.flush();
@@ -178,6 +203,7 @@ public class RequestServerWorker implements Runnable {
 			if((inputLine = in.readLine()) != null){
 				if(inputLine.equals("ok")){
 					System.out.println("Succesfully sent data to requestor. @Request worker.");
+					System.out.println(sendStr);
 					return true;
 				}
 			}
@@ -186,6 +212,20 @@ public class RequestServerWorker implements Runnable {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	private String createSendString(ArrayList<JSONObject> list) {
+		String output = "[";
+		int i = 0;
+		for(JSONObject obj : list){
+			if(i > 0){
+				output += ",";
+			}
+			output += obj.toJSONString();
+			i++;
+		}
+		output += "[";
+		return output;
 	}
 
 }

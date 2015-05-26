@@ -3,7 +3,8 @@ package surrogate;
 public class Surrogate {
 	public final static int SERVICE_STORE_WEATHER_DATA = 1;
 	public final static int SERVICE_RETRIEVE_REGIONAL_DATA = 2;
-	public final static int SERVICE_RETRIEVE_COMPUTATION_RESULTS = 3;
+	public final static int SERVICE_RETRIEVE_FORECASTS = 3;
+	public final static int SERVICE_RETRIEVE_COMPUTATION_RESULTS = 4;
 
 	public static void main(String[] args) {
 		StorageManager storageManager = new StorageManager();
@@ -14,5 +15,4 @@ public class Surrogate {
 		Thread requestServer = new Thread(new RequestServer(storageManager));
 		requestServer.start();
 	}
-
 }

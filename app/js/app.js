@@ -44,22 +44,27 @@ function getDataClick(){
 function forecastsClick(){
 	setSectionVisible("forecasts");
 	makeBackButtonHeaderVisible();
-	document.getElementById("get-results-span").innerHTML = "fetching data<br>";
 	pullForecasts(forecastsCallback);
 }
 
-function forecastsCallback(status, receivedItems){
+function forecastsCallback(status, inData){
 	if(status == null || status == "ok"){
-		addForecastElements(receivedItems);
+		document.getElementById("forecasts-span").innerHTML = "retrieving data<br>";		
 	}
 	else if(status == "error"){
 		//TODO: error handling
 	}
+	else if(status == "ready"){
+		addForecastElements(inData);
+	}
+	else if(status == "failed"){
+		document.getElementById("forecasts-span").innerHTML = "failed getting data<br>";
+	}
 }
 
 function addForecastElements(receivedItems){
-	var itemString = "Forecasts received: <br><br>";
-	while(receivedItems.length > 0){
+	var itemString = "Forecasts received: <br><br>" + receivedItems;
+	/*while(receivedItems.length > 0){
 		var receivedObject = JSON.parse(receivedItems.shift());
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
@@ -72,7 +77,7 @@ function addForecastElements(receivedItems){
 		itemString += "Time: " + receivedObject.time + "<br>";
 		itemString += "Date: " + receivedObject.date + "<br>";
 		itemString += "Description: " + receivedObject.description + "<br><br>";
-	}
+	}*/
 	document.getElementById("forecasts-span").innerHTML = itemString;
 }
 
@@ -140,6 +145,7 @@ function getDataCallback(status, inData, args){
 
 function addGetDataElements(receivedItems, startDate, endDate){
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
+	console.log(JSON.parse(receivedItems));
 	/*while(receivedItems.length > 0){
 		var receivedObject = JSON.parse(receivedItems.shift());
 		itemString += "Location: " + receivedObject.location + "<br>";

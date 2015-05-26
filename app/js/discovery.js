@@ -1,15 +1,15 @@
 "use strict";
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
-/*var surrogate = {
+var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
-	"IP" : "196.239.52.212",
+	"IP" : "localhost",
 	"storageServerPort" : 11112,
 	"requestServerPort" : 11113,
 	"weight" : 1
 };
-surrogateList.push(surrogate);*/
+surrogateList.push(surrogate);
 var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
@@ -90,6 +90,9 @@ function getSurrogatePort(serviceType, surrogate){
 		port = surrogate.storageServerPort;
 	}
 	else if(serviceType == "retrieve_regional_data"){
+		port = surrogate.requestServerPort;
+	}
+	else if(serviceType == "retrieve_forecasts"){
 		port = surrogate.requestServerPort;
 	}
 	else if(serviceType == "retrieve_computation_results"){

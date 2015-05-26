@@ -9,7 +9,7 @@ import org.json.simple.parser.*;;
 
 public class StorageServerWorker implements Runnable {
 	
-	protected Socket clientSocket;
+	Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
 
@@ -24,7 +24,7 @@ public class StorageServerWorker implements Runnable {
 		try {
 			in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		} catch (IOException e) {
-			System.out.println("Error opening BufferedReader. Storage worker.");
+			System.out.println("Error opening BufferedReader. @Storage worker.");
 			e.printStackTrace();
 		}
 		
@@ -41,7 +41,7 @@ public class StorageServerWorker implements Runnable {
 					}
 				}
 			} catch (IOException e) {
-				System.out.println("Error reading buffer. Storage worker.");
+				System.out.println("Error reading buffer. @Storage worker.");
 				e.printStackTrace();
 			}
 			
@@ -54,9 +54,9 @@ public class StorageServerWorker implements Runnable {
 		}
 		try {
 			clientSocket.close();
-			System.out.println("Closing connection to mobile device. Storage worker.");
+			System.out.println("Closing connection to mobile device. @Storage worker.");
 		} catch (IOException e) {
-			System.out.println("Error closing client socket. Storage worker.");
+			System.out.println("Error closing client socket. @Storage worker.");
 			e.printStackTrace();
 		}
 	}
@@ -69,10 +69,10 @@ public class StorageServerWorker implements Runnable {
 			out.write("unknown\n");
 			out.flush();
 		} catch (IOException e) {
-			System.out.println("Error opening BufferedWriter. Storage worker.");
+			System.out.println("Error opening BufferedWriter. @Storage worker.");
 			e.printStackTrace();
 		}
-		System.out.println("Unknow message from mobile. Closing thread. Storage worker.");
+		System.out.println("Unknow message from mobile. Closing thread. @Storage worker.");
 	}
 
 	private void handleSuccess() {
@@ -84,7 +84,7 @@ public class StorageServerWorker implements Runnable {
 			out.write("ok\n");
 			out.flush();
 		} catch (IOException e) {
-			System.out.println("Error opening BufferedWriter. Storage worker.");
+			System.out.println("Error opening BufferedWriter. @Storage worker.");
 			e.printStackTrace();
 		}
 	}
@@ -98,14 +98,14 @@ public class StorageServerWorker implements Runnable {
 			out.write("failed\n");
 			out.flush();
 		} catch (IOException e) {
-			System.out.println("Error opening BufferedWriter. Storage worker.");
+			System.out.println("Error opening BufferedWriter. @Storage worker.");
 			e.printStackTrace();
 		}
-		System.out.println("Failed service request from mobile. Closing thread. Storage worker.");
+		System.out.println("Failed service request from mobile. Closing thread. @Storage worker.");
 	}
 
 	private boolean handleServiceRequest(BufferedReader in) {
-    	System.out.println("Reading service request. Storage worker.");
+    	System.out.println("Reading service request. @Storage worker.");
     	String inputLine;
     	boolean success = false;
     	int serviceType = -1;
@@ -126,7 +126,7 @@ public class StorageServerWorker implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			System.out.println("Error with BufferedWriter. Storage worker.");
+			System.out.println("Error with BufferedWriter. @Storage worker.");
 			e.printStackTrace();
 		}
 		return success;
@@ -141,7 +141,7 @@ public class StorageServerWorker implements Runnable {
 				receivedString += inputLine;
 			}
 		} catch (IOException e) {
-			System.out.println("Error with BufferedWriter. Storage worker.");
+			System.out.println("Error with BufferedWriter. @Storage worker.");
 			e.printStackTrace();
 			return false;
 		}
@@ -155,7 +155,7 @@ public class StorageServerWorker implements Runnable {
 	private boolean sendToStorageManager(ArrayList<JSONObject> parsedJSON, int serviceType) {
 		boolean success = true;
 		if(serviceType == Surrogate.SERVICE_STORE_WEATHER_DATA){
-			System.out.println("Sending data to Storage manager. Storage worker.");
+			System.out.println("Sending data to Storage manager. @Storage worker.");
 			
 			ArrayList<JSONObject> backupList = new ArrayList<JSONObject>();
 			for(JSONObject obj : parsedJSON){
@@ -164,7 +164,7 @@ public class StorageServerWorker implements Runnable {
 					backupList.add(obj);
 				} catch(Exception e) {
 					//undo saves on exception
-					System.out.println("Error sending data to Storage manager, data was not stored. Storage worker.");
+					System.out.println("Error sending data to Storage manager, data was not stored. @Storage worker.");
 					e.printStackTrace();
 					success = false;
 					for(JSONObject obj2 : backupList){
@@ -174,7 +174,7 @@ public class StorageServerWorker implements Runnable {
 			}	
 		}
 		else{
-			System.out.println("Unknown service type. Nothing sent to Storage manager. Storage worker.");
+			System.out.println("Unknown service type. Nothing sent to Storage manager. @Storage worker.");
 			success = false;
 		}
 		return success;
@@ -183,18 +183,22 @@ public class StorageServerWorker implements Runnable {
 	private ArrayList<JSONObject> parseJSON(String receivedString) {
 		JSONParser parser = new JSONParser();
 		ArrayList<JSONObject> output = new ArrayList<JSONObject>();
-		String[] JSONStrings = receivedString.split("(?<=})");
+		if(receivedString.charAt(0) == '['){
+			receivedString = receivedString.substring(1);
+		}
+		if(receivedString.charAt(receivedString.length() - 1) == ']'){
+			receivedString = receivedString.substring(0, receivedString.length() - 1);
+		}
+		String[] JSONStrings = receivedString.replace("},{", "}{").split("(?<=})");
 		if(JSONStrings.length < 1){
-			System.out.println("Error with JSON parsing, received empty string. Storage worker. String:\n" + receivedString);
+			System.out.println("Error with JSON parsing, received empty string. @Storage worker. String:\n" + receivedString);
 			return null;
 		}
 		for(String JSONString : JSONStrings){
 			try {
-				if(!JSONString.isEmpty()){
-					output.add((JSONObject)parser.parse(JSONString));
-				}
+				output.add((JSONObject)parser.parse(JSONString));
 			} catch (ParseException e) {
-				System.out.println("Error with JSON parsing, nothing was stored. Storage worker. String:\n" + receivedString);
+				System.out.println("Error with JSON parsing, nothing was stored. @Storage worker. String:\n" + receivedString);
 				e.printStackTrace();
 				return null;
 			}
