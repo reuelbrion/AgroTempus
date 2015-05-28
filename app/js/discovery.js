@@ -8,7 +8,7 @@ var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
-var surrogate = {
+/*var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
 	"lat" : "52.379",
@@ -19,7 +19,7 @@ var surrogate = {
 	"offloadServerPort" : 11114,
 	"weight" : 1
 };
-surrogateList.push(surrogate);
+surrogateList.push(surrogate);*/
 var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
@@ -40,12 +40,12 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		callback(null);
 	}
 	if(surrogateListClone == null || surrogateListClone === undefined){
+		//deep copy hack
 		surrogateListClone = JSON.parse(JSON.stringify(surrogateList));
 	}
-	if(surrogateListClone.length < 1){
+	if(surrogateListClone.length < 1 || surrogateListClone == null){
 		callback(null);
 	}
-	
 	var chosenSurrogate = getHighestWeightSurrogate(surrogateListClone);
 	surrogateListClone.splice(surrogateListClone.indexOf(chosenSurrogate), 1);
 	var surrogatePort = getSurrogatePort(serviceType, chosenSurrogate);
@@ -69,15 +69,24 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		}
 		chosenSurrogate.weight++;
 		//TODO: weight algorithm
-		var sendStr = "request-service\n" + serviceType + "\n";
+		var serviceRequest = new Object();
+		serviceRequest.type = serviceType;
+		var sendStr = JSON.stringify(serviceRequest);
+		sendStr+="\n";
 		sendStr = sendStr.toString('utf-8');
 		socket.send(sendStr);
 		
 		//check if surrogate provides this service
 		socket.ondata = function (event) {
-			if (typeof event.data === 'string' && event.data == "ok\n") {
-				callback(socket, args);
-			} else {
+			var hasService = false;
+			if (typeof event.data === 'string') {
+				var response = JSON.parse(event.data);
+				if(response.response == "ok"){
+					callback(socket, args);
+					hasService = true;
+				}
+			} 
+			if(!hasService){
 				getSurrogate(serviceType, surrogateListClone, callback, args);
 			}
 		}

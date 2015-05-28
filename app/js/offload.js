@@ -8,14 +8,14 @@ function requestOffload(offloadParams, serviceType, callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
-	getSurrogate(serviceType, null, requestOffloadCallback, offLoadParams);
+	getSurrogate(serviceType, null, requestOffloadCallback, offloadParams);
 	callback("requesting");
 	requestedOffloadCallback = callback;
 }
 
 function requestOffloadCallback(surrogateSocket, offloadParams){
 	if(surrogateSocket == null){
-		//TODO: no surrogate found
+		requestedOffloadCallback("failed");
 	}
 	else{
 		console.info("Ready to request offload.");

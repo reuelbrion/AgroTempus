@@ -223,7 +223,7 @@ function regressionCallBack(status, inData, args){
 		
 	}
 	if(status == "failed"){
-		//TODO: error handling
+		document.getElementById("regression-span").innerHTML = "failed getting data<br>";
 	}
 }
 

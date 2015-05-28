@@ -18,6 +18,7 @@ function stageNewSubmit(stagingObject, callback){
 }
 
 function pushStagedData(){
+	//turn periodical data push off
 	clearInterval(interval);
 	if(stagingList.length > 0){
 		//in discovery.js
@@ -42,7 +43,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 		surrogateSocket.send(sendStr.toString('utf-8'));
 		console.info("Sent:\n" + sendStr);
 		surrogateSocket.ondata = function (event) {
-			if (typeof event.data === 'string' && event.data == "ok\n") {
+			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok") {
 				stagingList = [];
 				surrogateSocket.onclose = function (event) {
 					alert("All weather data saved on surrogate.");
@@ -53,6 +54,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 				}
 			}
 			surrogateSocket.close();
+			//turn periodical data push back on
 			interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 		}
 	}	
