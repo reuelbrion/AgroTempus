@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.io.*;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.*;;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class StorageServerWorker implements Runnable {
 	
@@ -108,17 +109,16 @@ public class StorageServerWorker implements Runnable {
     	System.out.println("Reading service request. @Storage worker.");
     	String inputLine;
     	boolean success = false;
-    	int serviceType = -1;
+    	String serviceType = "";
     	try {
 			if ((inputLine = in.readLine()) != null) {
-				if(inputLine.equals("store_weather_data")){
-					serviceType = Surrogate.SERVICE_STORE_WEATHER_DATA;
+				if(inputLine.equals(Surrogate.SERVICE_TYPE_STORE_WEATHER_DATA)){
 					if(out == null){
 		    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 		    		}
 					out.write("ok\n");
 					out.flush();
-					success = storeWeatherData(in, serviceType);
+					success = storeWeatherData(in, Surrogate.SERVICE_TYPE_STORE_WEATHER_DATA);
 			    }
 				else{	
 					 handleUnknownMessage();
@@ -132,7 +132,7 @@ public class StorageServerWorker implements Runnable {
 		return success;
 	}
 
-	private boolean storeWeatherData(BufferedReader in, int serviceType) {
+	private boolean storeWeatherData(BufferedReader in, String serviceType) {
 		System.out.println("Receiving weather data. @Storage worker.");
 		String inputLine;
 		String receivedString = "";
@@ -152,9 +152,9 @@ public class StorageServerWorker implements Runnable {
 		return false;
 	}
 
-	private boolean sendToStorageManager(ArrayList<JSONObject> parsedJSON, int serviceType) {
+	private boolean sendToStorageManager(ArrayList<JSONObject> parsedJSON, String serviceType) {
 		boolean success = true;
-		if(serviceType == Surrogate.SERVICE_STORE_WEATHER_DATA){
+		if(serviceType == Surrogate.SERVICE_TYPE_STORE_WEATHER_DATA){
 			System.out.println("Sending data to Storage manager. @Storage worker.");
 			
 			ArrayList<JSONObject> backupList = new ArrayList<JSONObject>();

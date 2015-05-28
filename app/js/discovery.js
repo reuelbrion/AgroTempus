@@ -1,21 +1,34 @@
 "use strict";
+var SERVICE_TYPE_RETRIEVE_FORECASTS = "retrieve_forecasts";
+var SERVICE_TYPE_RETRIEVE_REGIONAL_DATA = "retrieve_regional_data";
+var SERVICE_TYPE_STORE_WEATHER_DATA = "store_weather_data";
+var SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
+var SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
+var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
+
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
 var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
+	"lat" : "52.379",
+	"long" : "4.899",
 	"IP" : "localhost",
 	"storageServerPort" : 11112,
 	"requestServerPort" : 11113,
+	"offloadServerPort" : 11114,
 	"weight" : 1
 };
 surrogateList.push(surrogate);
 var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
+	"lat" : "33.379",
+	"long" : "1.899",
 	"IP" : "195.240.53.133",
 	"storageServerPort" : 11112,
 	"requestServerPort" : 11113,
+	"offloadServerPort" : 11114,
 	"weight" : 0
 };
 surrogateList.push(surrogate);
@@ -86,17 +99,23 @@ function getHighestWeightSurrogate(inList){
 function getSurrogatePort(serviceType, surrogate){
 	//TODO: checking for correct input
 	var port = "unknown";
-	if(serviceType == "store_weather_data"){
+	if(serviceType == SERVICE_TYPE_STORE_WEATHER_DATA){
 		port = surrogate.storageServerPort;
 	}
-	else if(serviceType == "retrieve_regional_data"){
+	else if(serviceType == SERVICE_TYPE_RETRIEVE_REGIONAL_DATA){
 		port = surrogate.requestServerPort;
 	}
-	else if(serviceType == "retrieve_forecasts"){
+	else if(serviceType == SERVICE_TYPE_RETRIEVE_FORECASTS){
 		port = surrogate.requestServerPort;
 	}
-	else if(serviceType == "retrieve_computation_results"){
+	else if(serviceType == SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS){
 		port = surrogate.requestServerPort;
+	}
+	else if(serviceType == SERVICE_TYPE_OFFLOAD_REGRESSION){
+		port = surrogate.offloadServerPort;
+	}
+	else if(serviceType == SERVICE_TYPE_OFFLOAD_PREDICTION){
+		port = surrogate.offloadServerPort;
 	}
 	return port;
 }

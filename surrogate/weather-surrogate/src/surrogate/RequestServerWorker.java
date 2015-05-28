@@ -224,7 +224,7 @@ public class RequestServerWorker implements Runnable {
 			output += obj.toJSONString();
 			i++;
 		}
-		output += "[";
+		output += "]";
 		return output;
 	}
 

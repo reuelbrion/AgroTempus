@@ -48,7 +48,7 @@ function forecastsClick(){
 }
 
 function forecastsCallback(status, inData){
-	if(status == null || status == "ok"){
+	if(status == null || status == "requesting"){
 		document.getElementById("forecasts-span").innerHTML = "retrieving data<br>";		
 	}
 	else if(status == "error"){
@@ -63,9 +63,11 @@ function forecastsCallback(status, inData){
 }
 
 function addForecastElements(receivedItems){
-	var itemString = "Forecasts received: <br><br>" + receivedItems;
-	/*while(receivedItems.length > 0){
-		var receivedObject = JSON.parse(receivedItems.shift());
+	var itemString = "Forecasts received: <br><br>";
+	receivedItems = JSON.parse(receivedItems);
+	while(receivedItems.length > 0){
+	//TODO: format time into human readable date and time
+		var receivedObject = receivedItems.shift();
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
 		itemString += "Long: " + receivedObject.long + "<br>";
@@ -75,9 +77,9 @@ function addForecastElements(receivedItems){
 		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
 		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
 		itemString += "Time: " + receivedObject.time + "<br>";
-		itemString += "Date: " + receivedObject.date + "<br>";
+		//itemString += "Date: " + receivedObject.date + "<br>";
 		itemString += "Description: " + receivedObject.description + "<br><br>";
-	}*/
+	}
 	document.getElementById("forecasts-span").innerHTML = itemString;
 }
 
@@ -94,6 +96,7 @@ function regressionClick(){
 function editDataSubmitClick(){
 var submitForm = document.forms["submit-form"];
 	var stagingObject = new Object();
+	//TODO: get surrogate lat and long and name correctly
 	stagingObject.location = submitForm["location-select"].value;
 	stagingObject.temp = submitForm["temp-input"].value;
 	stagingObject.humidity = submitForm["humidity-input"].value;
@@ -145,9 +148,10 @@ function getDataCallback(status, inData, args){
 
 function addGetDataElements(receivedItems, startDate, endDate){
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
-	console.log(JSON.parse(receivedItems));
-	/*while(receivedItems.length > 0){
-		var receivedObject = JSON.parse(receivedItems.shift());
+	receivedItems = JSON.parse(receivedItems);
+	while(receivedItems.length > 0){
+	//TODO: format time into human readable date and time
+		var receivedObject = receivedItems.shift();
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
 		itemString += "Long: " + receivedObject.long + "<br>";
@@ -157,9 +161,9 @@ function addGetDataElements(receivedItems, startDate, endDate){
 		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
 		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
 		itemString += "Time: " + receivedObject.time + "<br>";
-		itemString += "Date: " + receivedObject.date + "<br>";
+		//itemString += "Date: " + receivedObject.date + "<br>";
 		itemString += "Source: " + receivedObject.source + "<br><br>";
-	}*/
+	}
 	itemString += receivedItems;
 	document.getElementById("get-results-span").innerHTML = itemString;
 }
@@ -184,6 +188,7 @@ function predictionSubmitClick(){
 	var offloadParams = [];
 	offloadParams.variable = $("#prediction-select").val();
 	offloadParams.startDate = $("#prediction-date-input").val();
+	offloadParams.startDate = new Date(offloadParams.startDate);
 	//offload request in offload.js
 	requestOffload(offloadParams, predictionCallBack);
 }
@@ -199,21 +204,25 @@ function predictionCallBack(status){
 
 function regressionSubmitClick(){
 	setSectionVisible("regression-results");
-	document.getElementById("regression-span").innerHTML = "sending request<br>";
+	document.getElementById("regression-span").innerHTML = "locating surrogate<br>";
 	var offloadParams = [];
 	offloadParams.variable = $("#regression-variable-select").val();
 	offloadParams.type = $("#regression-type-select").val();
 	offloadParams.startDate = $("#regression-date-input").val();
+	offloadParams.startDate = new Date(offloadParams.startDate);
 	offloadParams.days = $("#regression-days-input").val();
 	//offload request in offload.js
-	requestOffload(offloadParams, regressionCallBack);
+	requestOffload(offloadParams, SERVICE_TYPE_OFFLOAD_REGRESSION, regressionCallBack);
 }
 
-function regressionCallBack(status){
-	if(status == "ok"){
+function regressionCallBack(status, inData, args){
+	if(status == "requesting"){
 		document.getElementById("regression-span").innerHTML = "request has been sent<br> to surrogate<br>";
 	}
-	if(status == null){
+	if(status == "ready"){
+		
+	}
+	if(status == "failed"){
 		//TODO: error handling
 	}
 }

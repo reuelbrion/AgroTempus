@@ -1,30 +1,42 @@
 "use strict";
+var requestedOffloadCallback;
 
-function requestOffload(offloadParams, callback){
+function requestOffload(offloadParams, serviceType, callback){
 	if (!(offloadParams.startDate instanceof Date)){
 		//TODO: error handling
 	}
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
-	
-	//TODO: offload to surrogate and wait to receive ok status
-	status = "ok";
-		
-	callback(status);
+	getSurrogate(serviceType, null, requestOffloadCallback, offLoadParams);
+	callback("requesting");
+	requestedOffloadCallback = callback;
 }
 
-function requestOffload(offloadParams, callback){
-	if (!(offloadParams.startDate instanceof Date)){
-		//TODO: error handling
+function requestOffloadCallback(surrogateSocket, offloadParams){
+	if(surrogateSocket == null){
+		//TODO: no surrogate found
 	}
-	if (!(typeof(callback) === "function")){
-		//TODO: error handling
+	else{
+		console.info("Ready to request offload.");
+		var sendStr = JSON.stringify(offloadParams);
+		sendStr+="\n";
+		surrogateSocket.send(sendStr.toString('utf-8'));
+		console.info("Sent:\n" + sendStr);
+		surrogateSocket.ondata = function (event) {
+			if (typeof event.data === 'string') {
+				//TODO: error checking
+				var reply = JSON.parse(event.data);
+				surrogateSocket.onclose = function (event) {
+					alert(event.data);
+					//requestedOffloadCallback();
+				}
+			} else {
+				surrogateSocket.onclose = function (event) {
+					alert("error");
+				}
+			}
+			surrogateSocket.close();
+		}
 	}
-	
-	//TODO: offload to surrogate and wait to receive ok status
-	status = "ok";
-		
-	callback(status);
 }
-

@@ -3,7 +3,7 @@
 var stagingList = [];
 var retryStagingInterval = 10000; //ms
 var requestedDataCallback = null;
-var requestedForecastsCallback = null;
+var requestedForecastCallback = null;
 
 //TODO: setInterval doesnt seem to work
 var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
@@ -21,7 +21,7 @@ function pushStagedData(){
 	clearInterval(interval);
 	if(stagingList.length > 0){
 		//in discovery.js
-		getSurrogate("store_weather_data", null, pushStagedDataCallback, null);
+		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
 	}
 }
 
@@ -56,12 +56,6 @@ function pushStagedDataCallback(surrogateSocket, args){
 			interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 		}
 	}	
-	/*
-	//TODO: increase/decrease interval 
-	while(stagingList.length > 0){
-		//TODO: push data to surrogate
-	}
-	*/
 }
 
 function pullData(startDate, endDate, callback){
@@ -76,7 +70,7 @@ function pullData(startDate, endDate, callback){
 	}
 	var args = [startDate, endDate];
 	//in discovery.js
-	getSurrogate("retrieve_regional_data", null, pullDataCallback, args);
+	getSurrogate(SERVICE_TYPE_RETRIEVE_REGIONAL_DATA, null, pullDataCallback, args);
 	callback("requesting");
 	requestedDataCallback = callback;
 }
@@ -114,9 +108,9 @@ function pullForecasts(callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
-	getSurrogate("retrieve_forecasts", null, pullForecastsCallback, null);
+	getSurrogate(SERVICE_TYPE_RETRIEVE_FORECASTS, null, pullForecastsCallback, null);
 	callback("requesting");
-	requestedForecastsCallback = callback;
+	requestedForecastCallback = callback;
 }
 
 function pullForecastsCallback(surrogateSocket){
