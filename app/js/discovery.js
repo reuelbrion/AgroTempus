@@ -8,7 +8,7 @@ var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
-/*var surrogate = {
+var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
 	"lat" : "52.379",
@@ -19,8 +19,8 @@ var surrogateList = [];
 	"offloadServerPort" : 11114,
 	"weight" : 1
 };
-surrogateList.push(surrogate);*/
-var surrogate = {
+surrogateList.push(surrogate);
+/*var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
 	"lat" : "33.379",
@@ -31,7 +31,7 @@ var surrogate = {
 	"offloadServerPort" : 11114,
 	"weight" : 0
 };
-surrogateList.push(surrogate);
+surrogateList.push(surrogate);*/
 
 function getSurrogate(serviceType, surrogateListClone, callback, args){
 	//TODO check callback is function
@@ -58,10 +58,10 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 	}
 	//end establishing connection fails
 	
-	//start connection
+	//connection succeeds
 	socket.onopen = function(event){
 		console.info("-> connection to surrogate opened: " + socket.port + "\n" + socket.host + "\n");	
-		//TODO: when connection breaks after a connection existed, we probably want to try again more than once with the same surrogate.
+		//TODO: when connection breaks after a connection existed, we want to try again more than once with the same surrogate.
 		socket.onerror = function(event){
 			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + "\n" + socket.host + "\n" + event.data.name);
 			surrogateListClone.push(chosenSurrogate);
@@ -91,7 +91,7 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 			}
 		}
 	}
-	//end connection
+	//end connection succeeds
 }
 
 function getHighestWeightSurrogate(inList){

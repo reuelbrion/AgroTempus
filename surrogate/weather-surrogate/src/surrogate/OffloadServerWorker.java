@@ -33,17 +33,20 @@ public class OffloadServerWorker implements Runnable {
 		if(in != null){
 			boolean success = false;
 			String inputLine;
+			JSONObject request;
+	    	JSONParser parser = new JSONParser();
 			try {
 				if ((inputLine = in.readLine()) != null) {
-					if(inputLine.equals("request-service")){
-						success = handleServiceRequest(in);
+					request = (JSONObject)parser.parse(inputLine);
+					if(request.containsKey("type")){
+						success = handleServiceRequest(in, (String)request.get("type"));
 				    }
 					else {
 						handleUnknownMessage();
 					}
 				}
-			} catch (IOException e) {
-				System.out.println("Error reading buffer. @Offload worker.");
+			} catch (Exception e) {
+				System.out.println("Error with mobile request. @Offload worker.");
 				e.printStackTrace();
 			}
 			
@@ -68,27 +71,22 @@ public class OffloadServerWorker implements Runnable {
 		
 	}
 
-	private boolean handleServiceRequest(BufferedReader in) {
+	@SuppressWarnings("unchecked")
+	private boolean handleServiceRequest(BufferedReader in, String serviceType) {
 		System.out.println("Reading service request. @Offload worker.");
-    	String inputLine;
     	boolean success = false;
-    	//JSONObject request = null;
-    	//JSONParser parser = new JSONParser();
     	try {
-			if ((inputLine = in.readLine()) != null) {
-				//request = (JSONObject)parser.parse(inputLine);
-				//if(request.containsKey(key).equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION))
-				if(inputLine.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
-					if(out == null){
-		    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-		    		}
-					out.write("ok\n");
-					out.flush();
-					success = submitRegression(in, out);
-			    }
-				else{	
-					 handleUnknownMessage();
-				}
+			if(serviceType.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
+				if(out == null){
+					out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+		    	}
+				JSONObject response = new JSONObject();
+				response.put("response", "ok");
+				out.write(response.toJSONString() + "\n");
+				out.flush();
+				success = submitRegression(in, out);
+			} else {	
+				 handleUnknownMessage();
 			}
 		} catch (IOException e) {
 			System.out.println("Error with BufferedWriter. @Offload worker.");

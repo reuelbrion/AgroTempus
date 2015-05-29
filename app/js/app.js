@@ -49,7 +49,7 @@ function forecastsClick(){
 
 function forecastsCallback(status, inData){
 	if(status == null || status == "requesting"){
-		document.getElementById("forecasts-span").innerHTML = "retrieving data<br>";		
+		document.getElementById("forecasts-span").innerHTML = "retrieving data<br>";	
 	}
 	else if(status == "error"){
 		//TODO: error handling
@@ -124,8 +124,8 @@ function getDataSubmitClick(){
 	setSectionVisible("get-data-results");
 	var startDate = $("#get-date-input1").val();
 	var endDate = $("#get-date-input2").val();
-	startDate = new Date(startDate);
-	endDate = new Date(endDate);
+	startDate = new Date(startDate).getTime();
+	endDate = new Date(endDate).getTime();
 	//pull data in dataexchange.js
 	pullData(startDate, endDate, getDataCallback);
 }
@@ -147,6 +147,7 @@ function getDataCallback(status, inData, args){
 }
 
 function addGetDataElements(receivedItems, startDate, endDate){
+	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
 	receivedItems = JSON.parse(receivedItems);
 	while(receivedItems.length > 0){

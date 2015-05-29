@@ -8,13 +8,13 @@ var requestedForecastCallback = null;
 //TODO: setInterval doesnt seem to work
 var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 
-function stageNewSubmit(stagingObject, callback){		
+function stageNewSubmit(stagingObject, UICallback){		
 	var stagingString = JSON.stringify(stagingObject);
 	stagingList.push(stagingString);
 	pushStagedData();
 	var status = "ok";
 	//TODO: return success/failure messages
-	callback(status);
+	UICallback(status);
 }
 
 function pushStagedData(){
@@ -43,14 +43,19 @@ function pushStagedDataCallback(surrogateSocket, args){
 		surrogateSocket.send(sendStr.toString('utf-8'));
 		console.info("Sent:\n" + sendStr);
 		surrogateSocket.ondata = function (event) {
-			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok") {
+			/*TODO: return the number of stored json objects from the surrogate, so that
+			we know what has been saved.*/
+			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok")
+			{
+				alert("All weather data saved on surrogate.");
 				stagingList = [];
 				surrogateSocket.onclose = function (event) {
-					alert("All weather data saved on surrogate.");
+					console.info("socket closed");
 				}
 			} else {
+				alert("Not all weather data saved on surrogate, will try again later.");
 				surrogateSocket.onclose = function (event) {
-					alert("Not all weather data saved on surrogate, will try again later.");
+					console.info("socket closed");
 				}
 			}
 			surrogateSocket.close();
@@ -60,10 +65,8 @@ function pushStagedDataCallback(surrogateSocket, args){
 	}	
 }
 
-function pullData(startDate, endDate, callback){
-	if (!(startDate instanceof Date) || !(endDate instanceof Date)){
-		//TODO: error handling
-	}
+function pullData(startDate, endDate, UICallback){
+	//TODO: check for correct dates (time integers)
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
@@ -71,10 +74,12 @@ function pullData(startDate, endDate, callback){
 		callback("wrongdate");
 	}
 	var args = [startDate, endDate];
-	//in discovery.js
+	//look for surrogate in discovery.js
 	getSurrogate(SERVICE_TYPE_RETRIEVE_REGIONAL_DATA, null, pullDataCallback, args);
-	callback("requesting");
-	requestedDataCallback = callback;
+	//callback to update UI
+	UICallback("requesting");
+	//and we need to callback to UI again when we get data so store this callback
+	requestedDataCallback = UICallback;
 }
 
 function pullDataCallback(surrogateSocket, args){
@@ -82,61 +87,71 @@ function pullDataCallback(surrogateSocket, args){
 		//TODO: no surrogate found
 	}
 	else{
-		console.info("Ready to request regional data.");
-		var sendStr = args[0].getTime() + "\n" + args[1].getTime() + "\n";
+		console.info("Ready to request regional data.\n");
+		var request = new Object();
+		request.start_time = args[0];
+		request.end_time = args[1];
+		var sendStr =  JSON.stringify(request) + "\n";
 		console.info("Request sent:\n" + sendStr);
 		surrogateSocket.send(sendStr.toString('utf-8'));
 	}
 	surrogateSocket.ondata = function (event) {
 			if (typeof event.data === 'string') {
-				var sendStr = "ok\n";
-				surrogateSocket.send(sendStr.toString('utf-8'));
 				var inData = event.data;
-				surrogateSocket.onclose = function (event) {
-					requestedDataCallback("ready", inData, args);
-				}
-			} else {
-				var sendStr = "unknown\n";
+				var response = new Object();
+				response.response = "ok";
+				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
-				surrogateSocket.onclose = function (event) {
-					requestedDataCallback("failed");
-				}
+				requestedDataCallback("ready", inData, args);
+			} else {
+				var inData = event.data;
+				var response = new Object();
+				response.response = "unknown";
+				var sendStr = JSON.stringify(response) + "\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				requestedDataCallback("failed");
+			}
+			surrogateSocket.onclose = function (event) {
+				console.info("closed socket to surrogate");
 			}
 			surrogateSocket.close();
 		}
 }
 
-function pullForecasts(callback){
+function pullForecasts(UICallback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
 	getSurrogate(SERVICE_TYPE_RETRIEVE_FORECASTS, null, pullForecastsCallback, null);
-	callback("requesting");
-	requestedForecastCallback = callback;
+	UICallback("requesting");
+	requestedForecastCallback = UICallback;
 }
 
 function pullForecastsCallback(surrogateSocket){
 	if(surrogateSocket == null){
 		//TODO: no surrogate found
 	}
-	else{
+	else {
 		console.info("Ready to request forecast data.");
-	}
-	surrogateSocket.ondata = function (event) {
+		surrogateSocket.ondata = function (event) {
 			if (typeof event.data === 'string') {
-				var sendStr = "ok\n";
-				surrogateSocket.send(sendStr.toString('utf-8'));
 				var inData = event.data;
-				surrogateSocket.onclose = function (event) {
-					requestedForecastCallback("ready", inData);
-				}
-			} else {
-				var sendStr = "unknown\n";
+				var response = new Object();
+				response.response = "ok";
+				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
-				surrogateSocket.onclose = function (event) {
-					requestedForecastCallback("failed");
-				}
+				requestedForecastCallback("ready", inData);
+			} else {
+				var response = new Object();
+				response.response = "unknown";
+				var sendStr = JSON.stringify(response) + "\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				requestedForecastCallback("failed");
+			}
+			surrogateSocket.onclose = function (event) {
+				console.info("closed socket to surrogate");
 			}
 			surrogateSocket.close();
 		}
+	}
 }

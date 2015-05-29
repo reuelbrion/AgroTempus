@@ -17,6 +17,7 @@ public class StorageManager implements Runnable {
 	private final ArrayList<JSONObject> storedForecastObjects = new ArrayList<JSONObject>();	
 	
 	StorageManager(){
+		running = true;
 		loadDummyData();
 	}
 	
@@ -50,7 +51,6 @@ public class StorageManager implements Runnable {
 	}
 
 	public void run() {
-		running = true;
 		while(running){
 			if(!weatherStorageQueue.isEmpty()){
 				weatherStorage();
