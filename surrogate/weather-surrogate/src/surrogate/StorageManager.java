@@ -34,38 +34,10 @@ public class StorageManager implements Runnable {
 	
 	@SuppressWarnings("unchecked")
 	private void loadDummyData() {
-		//load foracasts
-		JSONObject obj = new JSONObject();
-		obj.put("location", "Amsterdam - NL");
-		obj.put("lat", "52.379");
-		obj.put("long", "4.899");
-		obj.put("temp", "5");
-		obj.put("humidity", "60");
-		obj.put("pressure", "550");
-		obj.put("windspeed", "30");
-		obj.put("winddegree", "135");
-		obj.put("time", System.currentTimeMillis());
-		obj.put("description", "Sunny day");
-		storedForecastObjects.add(obj);
-		
-		obj = new JSONObject();
-		obj.put("location", "Amsterdam - NL");
-		obj.put("lat", "52.379");
-		obj.put("long", "4.899");
-		obj.put("temp", "6");
-		obj.put("humidity", "66");
-		obj.put("pressure", "510");
-		obj.put("windspeed", "11");
-		obj.put("winddegree", "222");
-		obj.put("time", System.currentTimeMillis()-1230500l);
-		obj.put("description", "Rain");
-		storedForecastObjects.add(obj);
-		//end load foracasts
-		
-		//load regional weather data
+		//load dummy regional weather data
     	JSONParser parser = new JSONParser();
     	try {
-    	    InputStream fis = new FileInputStream("C:\\Users\\Reuel\\Documents\\GitHub\\ForagingThesis\\surrogate\\weather-surrogate\\data\\DUMMY_REGIONAL_DATA.json");
+    	    InputStream fis = new FileInputStream("data/DUMMY_REGIONAL_DATA.json");
     	    InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
     	    BufferedReader br = new BufferedReader(isr);
     	    try {
@@ -74,16 +46,40 @@ public class StorageManager implements Runnable {
 					storedWeatherObjects.add((JSONObject) json);
 				}
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Error loading dummy data. @Storage Manager.");
 				e.printStackTrace();
 			}
     	} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+    		System.out.println("Error loading dummy data. @Storage Manager.");
+			e.printStackTrace();  
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Error loading dummy data. @Storage Manager.");
 			e.printStackTrace();
 		}
+    	//end load dummy regional weather data
+    	
+    	//load foracasts
+    	try {
+    	    InputStream fis = new FileInputStream("data/DUMMY_FORECASTS.json");
+    	    InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+    	    BufferedReader br = new BufferedReader(isr);
+    	    try {
+    	    	JSONArray array = (JSONArray) parser.parse(br);
+    	    	for(Object json : array){
+    	    		storedForecastObjects.add((JSONObject) json);
+    	    	}
+    		} catch (ParseException e) {
+    			System.out.println("Error loading dummy data. @Storage Manager.");
+    			e.printStackTrace();    					
+    		}
+    	    	} catch (FileNotFoundException e) {
+    	    		System.out.println("Error loading dummy data. @Storage Manager.");
+        			e.printStackTrace();  
+    			} catch (IOException e) {
+    				System.out.println("Error loading dummy data. @Storage Manager.");
+        			e.printStackTrace();  
+    			}
+    	//end load foracasts
     	
     	System.out.println("Dummy data successfully loaded. @Storage Manager.");
 	}

@@ -49,7 +49,7 @@ function forecastsClick(){
 
 function forecastsCallback(status, inData){
 	if(status == null || status == "requesting"){
-		document.getElementById("forecasts-span").innerHTML = "retrieving data<br>";	
+		document.getElementById("forecasts-span").innerHTML = "retrieving data<br><br>";	
 	}
 	else if(status == "error"){
 		//TODO: error handling
@@ -58,7 +58,7 @@ function forecastsCallback(status, inData){
 		addForecastElements(inData);
 	}
 	else if(status == "failed"){
-		document.getElementById("forecasts-span").innerHTML = "failed getting data<br>";
+		document.getElementById("forecasts-span").innerHTML = "failed getting data<br><br>";
 	}
 }
 

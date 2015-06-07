@@ -83,25 +83,24 @@ function pullData(startDate, endDate, UICallback){
 	requestedDataCallback = UICallback;
 }
 
-function pullDataCallback(surrogateSocket, args, inData){
+function pullDataCallback(surrogateSocket, args){
 	if(surrogateSocket == null){
 		//TODO: no surrogate found
 		return;
 	}
-	if(inData == null || inData == undefined){
-		inData = "";
-		console.info("Ready to request regional data.\n");
-		var request = new Object();
-		request.start_time = args[0];
-		request.end_time = args[1];
-		var sendStr =  JSON.stringify(request) + "\n";
-		console.info("Request sent:\n" + sendStr);
-		surrogateSocket.send(sendStr.toString('utf-8'));
-	}
+	//initialize new pull data request, if there is no inData object yet
+	var inData = "";
+	console.info("Ready to request regional data.\n");
+	var request = new Object();
+	request.start_time = args[0];
+	request.end_time = args[1];
+	var sendStr =  JSON.stringify(request) + "\n";
+	console.info("Request sent:\n" + sendStr);
+	surrogateSocket.send(sendStr.toString('utf-8'));
+	
 	surrogateSocket.ondata = function (event) {
 		if (typeof event.data === 'string') {
 			inData += event.data;
-			console.log("\n" + event.data + "\n");
 			if(event.data.substr(event.data.length - 1) == "\n" || event.data.substr(event.data.length - 1) == "]"){
 				var response = new Object();
 				response.response = "ok";
@@ -124,15 +123,11 @@ function pullDataCallback(surrogateSocket, args, inData){
 			}
 			surrogateSocket.close();
 		}
-	}
-	
-	
-	
-	
+	}	
 }
 
 function pullForecasts(UICallback){
-	if (!(typeof(callback) === "function")){
+	if (!(typeof(UICallback) === "function")){
 		//TODO: error handling
 	}
 	getSurrogate(SERVICE_TYPE_RETRIEVE_FORECASTS, null, pullForecastsCallback, null);
@@ -144,27 +139,34 @@ function pullForecastsCallback(surrogateSocket){
 	if(surrogateSocket == null){
 		//TODO: no surrogate found
 	}
-	else {
-		console.info("Ready to request forecast data.");
-		surrogateSocket.ondata = function (event) {
-			if (typeof event.data === 'string') {
-				var inData = event.data;
+	
+	var inData = "";
+	console.info("Ready to receive forecasts.\n");
+	surrogateSocket.ondata = function (event) {
+		if (typeof event.data === 'string') {
+			inData += event.data;
+			if(event.data.substr(event.data.length - 1) == "\n" || event.data.substr(event.data.length - 1) == "]"){
 				var response = new Object();
 				response.response = "ok";
 				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
 				requestedForecastCallback("ready", inData);
-			} else {
-				var response = new Object();
-				response.response = "unknown";
-				var sendStr = JSON.stringify(response) + "\n";
-				surrogateSocket.send(sendStr.toString('utf-8'));
-				requestedForecastCallback("failed");
-			}
+				surrogateSocket.onclose = function (event) {
+					console.info("closed socket to surrogate");
+				}
+				surrogateSocket.close();
+			} 
+		} else {
+			var response = new Object();
+			response.response = "unknown";
+			var sendStr = JSON.stringify(response) + "\n";
+			surrogateSocket.send(sendStr.toString('utf-8'));
+			requestedForecastCallback("failed");
 			surrogateSocket.onclose = function (event) {
 				console.info("closed socket to surrogate");
 			}
 			surrogateSocket.close();
 		}
 	}
+	
 }
