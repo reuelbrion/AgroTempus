@@ -19,7 +19,6 @@ RequestServer(StorageManager storageManager){
 	@Override
 	public void run() {
 		running = true;
-		ArrayList<Thread> threadList = new ArrayList<Thread>();
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
@@ -35,7 +34,6 @@ RequestServer(StorageManager storageManager){
                 acceptSocket = serverSocket.accept();
                 System.out.println("connection from mobile accepted. @Request server.");
                 Thread newThread = new Thread(new RequestServerWorker(acceptSocket, storageManager));
-                threadList.add(newThread);
                 newThread.start();
             } catch (IOException e) {
                 System.err.println("Accept failed. @Request server.");

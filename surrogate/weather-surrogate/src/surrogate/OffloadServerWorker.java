@@ -11,13 +11,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class OffloadServerWorker implements Runnable {
+	final static long SLEEP_WAITING_FOR_COMPUTATION = 1000;
+	
 	Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
+	public volatile OffloadComputationManager offloadComputationManager;
 
-	public OffloadServerWorker(Socket clientSocket, StorageManager storageManager) {
+	public OffloadServerWorker(Socket clientSocket, StorageManager storageManager, OffloadComputationManager offloadComputationManager) {
 		this.clientSocket = clientSocket;
 		this.storageManager = storageManager;
+		this.offloadComputationManager = offloadComputationManager;
 		out = null;
 	}
 	
@@ -85,6 +89,15 @@ public class OffloadServerWorker implements Runnable {
 				out.write(response.toJSONString() + "\n");
 				out.flush();
 				success = submitRegression(in, out);
+			} else if(serviceType.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
+				if(out == null){
+					out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+		    	}
+				JSONObject response = new JSONObject();
+				response.put("response", "ok");
+				out.write(response.toJSONString() + "\n");
+				out.flush();
+				success = submitPrediction(in, out);
 			} else {	
 				 handleUnknownMessage();
 			}
@@ -95,8 +108,35 @@ public class OffloadServerWorker implements Runnable {
     	return success;
 	}
 
-	private boolean submitRegression(BufferedReader in, BufferedWriter out2) {
+	private boolean submitPrediction(BufferedReader in, BufferedWriter out2) {
 		// TODO Auto-generated method stub
+		return false;
+	}
+
+	private boolean submitRegression(BufferedReader in, BufferedWriter out2) {
+		JSONParser parser = new JSONParser();
+		JSONObject request;
+		String inputLine;
+		try {
+			if ((inputLine = in.readLine()) != null) {
+				request = (JSONObject)parser.parse(inputLine);
+				ComputationRequest compRequest = new ComputationRequest(this, request);
+				offloadComputationManager.computationRequestQueue.add(compRequest);
+				long waitTime = SLEEP_WAITING_FOR_COMPUTATION;
+				while(!compRequest.ready){
+					Thread.sleep(waitTime);
+					//TODO: algorithm that makes sense, timeout
+					waitTime += 0.5*waitTime;
+				}
+			} else {
+				handleUnknownMessage();
+				return false;
+			}
+		} catch (Exception e) {
+			System.out.println("Error in computation request. @Offload worker.");
+			e.printStackTrace();
+		}
+		
 		return false;
 	}
 

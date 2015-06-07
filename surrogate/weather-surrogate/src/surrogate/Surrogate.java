@@ -12,11 +12,18 @@ public class Surrogate {
 		StorageManager storageManager = new StorageManager();
 		Thread storageManagerThread = new Thread(storageManager);
 		storageManagerThread.start();
+		OffloadComputationManager offloadComputationManager = new OffloadComputationManager(storageManager);
+		Thread offloadComputationManagerThread = new Thread(offloadComputationManager);
+		offloadComputationManagerThread.start();
 		Thread storageServer = new Thread(new StorageServer(storageManager));
 		storageServer.start();
 		Thread requestServer = new Thread(new RequestServer(storageManager));
 		requestServer.start();
-		Thread offloadServer = new Thread(new OffloadServer(storageManager));
+		Thread offloadServer = new Thread(new OffloadServer(storageManager, offloadComputationManager));
 		offloadServer.start();
+		
+		while(true){
+			//TODO: check if managers are alive etc...
+		}
 	}
 }

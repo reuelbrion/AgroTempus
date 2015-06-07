@@ -1,9 +1,20 @@
 package surrogate;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class StorageManager implements Runnable {
 	private static final long SLEEP_TIME_PER_CYCLE = 500;
@@ -23,6 +34,7 @@ public class StorageManager implements Runnable {
 	
 	@SuppressWarnings("unchecked")
 	private void loadDummyData() {
+		//load foracasts
 		JSONObject obj = new JSONObject();
 		obj.put("location", "Amsterdam - NL");
 		obj.put("lat", "52.379");
@@ -48,6 +60,32 @@ public class StorageManager implements Runnable {
 		obj.put("time", System.currentTimeMillis()-1230500l);
 		obj.put("description", "Rain");
 		storedForecastObjects.add(obj);
+		//end load foracasts
+		
+		//load regional weather data
+    	JSONParser parser = new JSONParser();
+    	try {
+    	    InputStream fis = new FileInputStream("C:\\Users\\Reuel\\Documents\\GitHub\\ForagingThesis\\surrogate\\weather-surrogate\\data\\DUMMY_REGIONAL_DATA.json");
+    	    InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+    	    BufferedReader br = new BufferedReader(isr);
+    	    try {
+				JSONArray array = (JSONArray) parser.parse(br);
+				for(Object json : array){
+					storedWeatherObjects.add((JSONObject) json);
+				}
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	System.out.println("Dummy data successfully loaded. @Storage Manager.");
 	}
 
 	public void run() {

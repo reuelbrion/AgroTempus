@@ -10,15 +10,16 @@ final static int SERVER_PORT = 11114;
 	
 	public volatile boolean running;
 	public volatile StorageManager storageManager;
+	public volatile OffloadComputationManager offloadComputationManager;
 	
-	OffloadServer(StorageManager storageManager){
+	OffloadServer(StorageManager storageManager, OffloadComputationManager offloadComputationManager){
 		this.storageManager = storageManager;
+		this.offloadComputationManager = offloadComputationManager;
+		running = true;
 	}
 	
 	public void run() {
-		running = true;
-		ArrayList<Thread> threadList = new ArrayList<Thread>();
-        ServerSocket serverSocket = null;
+		ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
             System.out.println("Server socket successfully opened. @Offload server.");
@@ -32,8 +33,7 @@ final static int SERVER_PORT = 11114;
             try {
                 acceptSocket = serverSocket.accept();
                 System.out.println("connection from mobile accepted. @Offload server.");
-                Thread newThread = new Thread(new OffloadServerWorker(acceptSocket, storageManager));
-                threadList.add(newThread);
+                Thread newThread = new Thread(new OffloadServerWorker(acceptSocket, storageManager, offloadComputationManager));
                 newThread.start();
             } catch (IOException e) {
                 System.err.println("Accept failed. @Offload server");

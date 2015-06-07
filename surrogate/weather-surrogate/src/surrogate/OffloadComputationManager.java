@@ -1,5 +1,6 @@
 package surrogate;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class OffloadComputationManager implements Runnable {
@@ -15,9 +16,11 @@ public class OffloadComputationManager implements Runnable {
 
 	public void run() {
 		while(running){
-			
+			if(!computationRequestQueue.isEmpty()){
+				System.out.println("Creating new computation thread. @Computation manager.");
+                Thread newThread = new Thread(new OffloadComputationWorker(computationRequestQueue.poll()));
+                newThread.start();
+			}
 		}
-
 	}
-
 }

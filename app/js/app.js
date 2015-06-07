@@ -148,7 +148,7 @@ function getDataCallback(status, inData, args){
 
 function addGetDataElements(receivedItems, startDate, endDate){
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
-	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
+	console.log(receivedItems);
 	receivedItems = JSON.parse(receivedItems);
 	while(receivedItems.length > 0){
 	//TODO: format time into human readable date and time

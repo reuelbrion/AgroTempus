@@ -57,6 +57,9 @@ public class RequestServerWorker implements Runnable {
 	        }
 		}
 		try {
+			if(out != null){
+				out.close();
+			}
 			clientSocket.close();
 			System.out.println("Closing connection to mobile device. @Request worker.");
 		} catch (IOException e) {
@@ -165,6 +168,7 @@ public class RequestServerWorker implements Runnable {
 		try{
 			ForecastRequest request = new ForecastRequest(this);
 			storageManager.forecastRequestQueue.add(request);
+			//TODO: time out!
 			while(!request.ready){
 				Thread.sleep(SLEEP_TIME_FORECAST_REQUEST);
 			}
@@ -183,6 +187,7 @@ public class RequestServerWorker implements Runnable {
 		try{
 			RegionalRequest request = new RegionalRequest(start, end, this);
 			storageManager.regionalRequestQueue.add(request);
+			//TODO: timeout!
 			while(!request.ready){
 				Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
 			}

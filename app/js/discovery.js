@@ -8,7 +8,7 @@ var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 
 var surrogateList = [];
 //TODO: retrieve surrogates from data store instead of hardcoding
-var surrogate = {
+/*var surrogate = {
 	"location" : "Amsterdam",
 	"country" : "NL",
 	"lat" : "52.379",
@@ -19,8 +19,8 @@ var surrogate = {
 	"offloadServerPort" : 11114,
 	"weight" : 1
 };
-surrogateList.push(surrogate);
-/*var surrogate = {
+surrogateList.push(surrogate);*/
+var surrogate = {
 	"location" : "Breda",
 	"country" : "NL",
 	"lat" : "33.379",
@@ -31,7 +31,7 @@ surrogateList.push(surrogate);
 	"offloadServerPort" : 11114,
 	"weight" : 0
 };
-surrogateList.push(surrogate);*/
+surrogateList.push(surrogate);
 
 function getSurrogate(serviceType, surrogateListClone, callback, args){
 	//TODO check callback is function

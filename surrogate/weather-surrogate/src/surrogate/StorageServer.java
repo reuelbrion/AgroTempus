@@ -16,7 +16,6 @@ public class StorageServer implements Runnable {
 	
 	public void run() {
 		running = true;
-		ArrayList<Thread> threadList = new ArrayList<Thread>();
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
@@ -32,7 +31,6 @@ public class StorageServer implements Runnable {
                 acceptSocket = serverSocket.accept();
                 System.out.println("connection from mobile accepted. @Storage server.");
                 Thread newThread = new Thread(new StorageServerWorker(acceptSocket, storageManager));
-                threadList.add(newThread);
                 newThread.start();
             } catch (IOException e) {
                 System.err.println("Accept failed. @Storage server");

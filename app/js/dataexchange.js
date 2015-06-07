@@ -2,6 +2,7 @@
 
 var stagingList = [];
 var retryStagingInterval = 10000; //ms
+var receivingPullData = null;
 var requestedDataCallback = null;
 var requestedForecastCallback = null;
 
@@ -82,11 +83,13 @@ function pullData(startDate, endDate, UICallback){
 	requestedDataCallback = UICallback;
 }
 
-function pullDataCallback(surrogateSocket, args){
+function pullDataCallback(surrogateSocket, args, inData){
 	if(surrogateSocket == null){
 		//TODO: no surrogate found
+		return;
 	}
-	else{
+	if(inData == null || inData == undefined){
+		inData = "";
 		console.info("Ready to request regional data.\n");
 		var request = new Object();
 		request.start_time = args[0];
@@ -96,26 +99,36 @@ function pullDataCallback(surrogateSocket, args){
 		surrogateSocket.send(sendStr.toString('utf-8'));
 	}
 	surrogateSocket.ondata = function (event) {
-			if (typeof event.data === 'string') {
-				var inData = event.data;
+		if (typeof event.data === 'string') {
+			inData += event.data;
+			console.log("\n" + event.data + "\n");
+			if(event.data.substr(event.data.length - 1) == "\n" || event.data.substr(event.data.length - 1) == "]"){
 				var response = new Object();
 				response.response = "ok";
 				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
 				requestedDataCallback("ready", inData, args);
-			} else {
-				var inData = event.data;
-				var response = new Object();
-				response.response = "unknown";
-				var sendStr = JSON.stringify(response) + "\n";
-				surrogateSocket.send(sendStr.toString('utf-8'));
-				requestedDataCallback("failed");
-			}
+				surrogateSocket.onclose = function (event) {
+					console.info("closed socket to surrogate");
+				}
+				surrogateSocket.close();
+			} 
+		} else {
+			var response = new Object();
+			response.response = "unknown";
+			var sendStr = JSON.stringify(response) + "\n";
+			surrogateSocket.send(sendStr.toString('utf-8'));
+			requestedDataCallback("failed");
 			surrogateSocket.onclose = function (event) {
 				console.info("closed socket to surrogate");
 			}
 			surrogateSocket.close();
 		}
+	}
+	
+	
+	
+	
 }
 
 function pullForecasts(UICallback){
