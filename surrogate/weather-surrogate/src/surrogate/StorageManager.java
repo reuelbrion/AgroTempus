@@ -30,6 +30,7 @@ public class StorageManager implements Runnable {
 	StorageManager(){
 		running = true;
 		loadDummyData();
+		System.out.println("Storage Manager successfully started. @Storage manager.");
 	}
 	
 	@SuppressWarnings("unchecked")

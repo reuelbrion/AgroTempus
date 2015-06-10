@@ -148,7 +148,6 @@ function getDataCallback(status, inData, args){
 
 function addGetDataElements(receivedItems, startDate, endDate){
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
-	console.log(receivedItems);
 	receivedItems = JSON.parse(receivedItems);
 	while(receivedItems.length > 0){
 	//TODO: format time into human readable date and time
@@ -186,10 +185,10 @@ function editTimeClick(){
 function predictionSubmitClick(){
 	setSectionVisible("prediction-results");
 	document.getElementById("prediction-span").innerHTML = "sending request<br>";
-	var offloadParams = [];
+	var offloadParams = new Object();
 	offloadParams.variable = $("#prediction-select").val();
-	offloadParams.startDate = $("#prediction-date-input").val();
-	offloadParams.startDate = new Date(offloadParams.startDate);
+	offloadParams.startdate = $("#prediction-date-input").val();
+	offloadParams.startdate = new Date(offloadParams.startDate);
 	//offload request in offload.js
 	requestOffload(offloadParams, predictionCallBack);
 }
@@ -206,12 +205,16 @@ function predictionCallBack(status){
 function regressionSubmitClick(){
 	setSectionVisible("regression-results");
 	document.getElementById("regression-span").innerHTML = "locating surrogate<br>";
-	var offloadParams = [];
+	var offloadParams = new Object();
+	offloadParams.type = SERVICE_TYPE_OFFLOAD_REGRESSION;
 	offloadParams.variable = $("#regression-variable-select").val();
-	offloadParams.type = $("#regression-type-select").val();
-	offloadParams.startDate = $("#regression-date-input").val();
-	offloadParams.startDate = new Date(offloadParams.startDate);
+	offloadParams.regressiontype = $("#regression-type-select").val();
+	offloadParams.startdate = $("#regression-date-input").val();
+	offloadParams.startdate = Date.parse(offloadParams.startdate);
 	offloadParams.days = $("#regression-days-input").val();
+	if(typeof offloadParams.days === 'string'){
+		offloadParams.days = parseInt(offloadParams.days);
+	}
 	//offload request in offload.js
 	requestOffload(offloadParams, SERVICE_TYPE_OFFLOAD_REGRESSION, regressionCallBack);
 }
@@ -221,11 +224,15 @@ function regressionCallBack(status, inData, args){
 		document.getElementById("regression-span").innerHTML = "request has been sent<br> to surrogate<br>";
 	}
 	if(status == "ready"){
-		
+		addRegressionElements(inData);
 	}
 	if(status == "failed"){
 		document.getElementById("regression-span").innerHTML = "failed getting data<br>";
 	}
+}
+
+function addRegressionElements(receivedItems){
+
 }
 
 function backToMainClick(){

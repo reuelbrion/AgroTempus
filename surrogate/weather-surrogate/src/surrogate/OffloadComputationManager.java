@@ -3,8 +3,7 @@ package surrogate;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class OffloadComputationManager implements Runnable {
-	
+public class OffloadComputationManager implements Runnable {	
 	public volatile boolean running;
 	public volatile StorageManager storageManager;
 	public final ConcurrentLinkedQueue<ComputationRequest> computationRequestQueue = new ConcurrentLinkedQueue<ComputationRequest>();
@@ -12,6 +11,7 @@ public class OffloadComputationManager implements Runnable {
 	OffloadComputationManager(StorageManager storageManager){
 		this.storageManager = storageManager;
 		running = true;
+		System.out.println("Computation manager successfully started. @Computation manager.");
 	}
 
 	public void run() {

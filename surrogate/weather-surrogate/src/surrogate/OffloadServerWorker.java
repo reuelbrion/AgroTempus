@@ -7,11 +7,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class OffloadServerWorker implements Runnable {
-	final static long SLEEP_WAITING_FOR_COMPUTATION = 1000;
 	
 	Socket clientSocket;
 	BufferedWriter out;
@@ -70,9 +70,21 @@ public class OffloadServerWorker implements Runnable {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void handleUnknownMessage() {
-		// TODO Auto-generated method stub
-		
+		try {
+    		if(out == null){
+    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+    		}
+    		JSONObject response = new JSONObject();
+			response.put("response", "unknown");
+			out.write(response.toJSONString() + "\n");
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("Error opening BufferedWriter. @Offload worker.");
+			e.printStackTrace();
+		}
+		System.out.println("Unknow message from mobile. Closing thread. @Offload worker.");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -117,26 +129,34 @@ public class OffloadServerWorker implements Runnable {
 		JSONParser parser = new JSONParser();
 		JSONObject request;
 		String inputLine;
+		System.out.println("Adding regression request. @Offload worker.");
 		try {
 			if ((inputLine = in.readLine()) != null) {
 				request = (JSONObject)parser.parse(inputLine);
-				ComputationRequest compRequest = new ComputationRequest(this, request);
-				offloadComputationManager.computationRequestQueue.add(compRequest);
-				long waitTime = SLEEP_WAITING_FOR_COMPUTATION;
-				while(!compRequest.ready){
-					Thread.sleep(waitTime);
-					//TODO: algorithm that makes sense, timeout
-					waitTime += 0.5*waitTime;
+				System.out.println(inputLine);
+				if(validateRegressionRequest(request)){
+					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request));
+					return true;
 				}
 			} else {
 				handleUnknownMessage();
 				return false;
 			}
 		} catch (Exception e) {
-			System.out.println("Error in computation request. @Offload worker.");
+			System.out.println("Error in adding regression request. @Offload worker.");
 			e.printStackTrace();
 		}
-		
+		return false;
+	}
+
+	private boolean validateRegressionRequest(JSONObject JSONRequest) {
+		if(JSONRequest.containsKey("type") && JSONRequest.containsKey("variable") && JSONRequest.containsKey("regressiontype") 
+		&& JSONRequest.containsKey("startdate") && JSONRequest.containsKey("days")){
+			if(JSONRequest.get("type") instanceof String && JSONRequest.get("variable") instanceof String && JSONRequest.get("type") instanceof String
+			&& JSONRequest.get("startdate") instanceof Long && (JSONRequest.get("days") instanceof Long || JSONRequest.get("days") instanceof Integer)){
+				return true;
+			}
+		}
 		return false;
 	}
 
