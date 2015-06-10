@@ -18,7 +18,7 @@ public class OffloadComputationManager implements Runnable {
 		while(running){
 			if(!computationRequestQueue.isEmpty()){
 				System.out.println("Creating new computation thread. @Computation manager.");
-                Thread newThread = new Thread(new OffloadComputationWorker(computationRequestQueue.poll()));
+                Thread newThread = new Thread(new OffloadComputationWorker(computationRequestQueue.poll(), storageManager));
                 newThread.start();
 			}
 		}

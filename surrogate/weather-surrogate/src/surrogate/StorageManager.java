@@ -21,11 +21,13 @@ public class StorageManager implements Runnable {
 	
 	public volatile boolean running;
 	public final ConcurrentLinkedQueue<JSONObject> weatherStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
+	public final ConcurrentLinkedQueue<JSONObject> forecastStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
+	public final ConcurrentLinkedQueue<JSONObject> computationResultStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
 	public final ConcurrentLinkedQueue<RegionalRequest> regionalRequestQueue = new ConcurrentLinkedQueue<RegionalRequest>();
 	public final ConcurrentLinkedQueue<ForecastRequest> forecastRequestQueue = new ConcurrentLinkedQueue<ForecastRequest>();
-	public final ConcurrentLinkedQueue<JSONObject> forecastStorageQueue = new ConcurrentLinkedQueue<JSONObject>();
 	private final ArrayList<JSONObject> storedWeatherObjects = new ArrayList<JSONObject>();	
-	private final ArrayList<JSONObject> storedForecastObjects = new ArrayList<JSONObject>();	
+	private final ArrayList<JSONObject> storedForecastObjects = new ArrayList<JSONObject>();
+	private final ArrayList<JSONObject> storedComputationResultObjects = new ArrayList<JSONObject>();	
 	
 	StorageManager(){
 		running = true;
@@ -93,6 +95,9 @@ public class StorageManager implements Runnable {
 			if(!forecastStorageQueue.isEmpty()){
 				forecastStorage();
 			}
+			if(!computationResultStorageQueue.isEmpty()){
+				computationStorage();
+			}
 			if(!forecastRequestQueue.isEmpty()){
 				ForecastRequest request = forecastRequestQueue.poll();
 				if(request != null){
@@ -105,6 +110,7 @@ public class StorageManager implements Runnable {
 					handleRegionalRequest(request);
 				}
 			}
+			
 			try {
 				Thread.sleep(SLEEP_TIME_PER_CYCLE);
 			} catch (InterruptedException e) {
@@ -114,6 +120,14 @@ public class StorageManager implements Runnable {
 		}
 	}
 	
+	private void computationStorage() {
+		JSONObject obj = computationResultStorageQueue.poll();
+		if(obj != null){
+			storedComputationResultObjects.add(obj);
+			System.out.println("Saved JSON computation result object to storage. @Storage manager.\n" + obj.toString());
+		}
+	}
+
 	private void forecastStorage() {
 		JSONObject obj = forecastStorageQueue.poll();
 		if(obj != null){

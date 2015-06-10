@@ -207,16 +207,28 @@ function regressionSubmitClick(){
 	document.getElementById("regression-span").innerHTML = "locating surrogate<br>";
 	var offloadParams = new Object();
 	offloadParams.type = SERVICE_TYPE_OFFLOAD_REGRESSION;
-	offloadParams.variable = $("#regression-variable-select").val();
+	offloadParams.variable = selectRegressionVariable($("#regression-variable-select").val());
 	offloadParams.regressiontype = $("#regression-type-select").val();
 	offloadParams.startdate = $("#regression-date-input").val();
 	offloadParams.startdate = Date.parse(offloadParams.startdate);
-	offloadParams.days = $("#regression-days-input").val();
+	offloadParams.extrapolatedays = $("#regression-days-input").val();
 	if(typeof offloadParams.days === 'string'){
 		offloadParams.days = parseInt(offloadParams.days);
 	}
 	//offload request in offload.js
 	requestOffload(offloadParams, SERVICE_TYPE_OFFLOAD_REGRESSION, regressionCallBack);
+}
+
+function selectRegressionVariable(value){
+	if(value == "Temperature"){
+		return "temp";
+	} else if (value == "Humidity"){
+		return "humidity";
+	} else if (value == "Pressure"){
+		return "pressure";
+	} else {
+		return "unknown";
+	}
 }
 
 function regressionCallBack(status, inData, args){
