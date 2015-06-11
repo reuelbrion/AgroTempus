@@ -7,8 +7,8 @@ public class Surrogate {
 	public final static String SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
 	public final static String SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 	public final static String SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";	
-
-	public static void main(String[] args) {
+		
+	public static void main(String[] args) {		
 		StorageManager storageManager = new StorageManager();
 		Thread storageManagerThread = new Thread(storageManager);
 		storageManagerThread.start();
@@ -21,6 +21,8 @@ public class Surrogate {
 		requestServer.start();
 		Thread offloadServer = new Thread(new OffloadServer(storageManager, offloadComputationManager));
 		offloadServer.start();
+		Thread surrogateUI = new Thread(new SurrogateUI());
+		surrogateUI.start();
 		
 		while(true){
 			//TODO: check if managers are alive etc...
