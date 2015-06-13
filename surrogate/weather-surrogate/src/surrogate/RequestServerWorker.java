@@ -210,7 +210,6 @@ public class RequestServerWorker implements Runnable {
 		//TODO: handle timeout in response
 			String sendStr = createSendString(list);
 		try {
-			out.write(sendStr);
 			out.flush();
 			System.out.println("Sending data to requestor. @Request worker.");
 		} catch (IOException e) {

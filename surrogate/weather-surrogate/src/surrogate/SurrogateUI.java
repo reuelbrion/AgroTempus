@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 import javax.swing.JButton;
@@ -15,33 +17,43 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-public class SurrogateUI implements Runnable {
-
-	public SurrogateUI(){
-		System.out.println("GUI successfully started. @GUI.");
+public class SurrogateUI extends OutputStream implements Runnable {
+	private final JTextArea messageOutput;	
+	private final StringBuilder sb;
+	public final Surrogate surrogate;
+	public volatile boolean initiated;
+	
+	public SurrogateUI(Surrogate surrogate){
+		sb = new StringBuilder();
+		messageOutput = new JTextArea(25, 80);
+		messageOutput.setEditable (false);
+		initiated = false;
+		this.surrogate = surrogate;
 	}
 	
 	public void run() {
-		 JTextArea textArea = new JTextArea (25, 80);
-
-	        textArea.setEditable (false);
-		
-		JFrame guiFrame = new JFrame("stdout");
+		JFrame guiFrame = new JFrame();
 	    guiFrame.setTitle("Weather Surrogate");
 	    guiFrame.setSize(300,250);
-	    
-	  //This will center the JFrame in the middle of the screen
-        guiFrame.setLocationRelativeTo(null);
+	    guiFrame.setLocationRelativeTo(null);
+	    guiFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
-        Container contentPane = guiFrame.getContentPane ();
-        contentPane.setLayout (new BorderLayout ());
-        contentPane.add (
-            new JScrollPane (
-                textArea, 
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, 
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
-            BorderLayout.CENTER);
+        Container contentPane = guiFrame.getContentPane();
+        contentPane.add(new JScrollPane (messageOutput, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+        JButton exitUIButton = new JButton("Exit UI");
+        JButton closeSurrogateButton = new JButton("Stop surrogate");
+        
+        //contentPane.setLayout(new BorderLayout ());
+        
+        contentPane.add(exitUIButton,BorderLayout.SOUTH);
+        contentPane.add(closeSurrogateButton,BorderLayout.SOUTH);
+        
         guiFrame.pack ();
+        guiFrame.setVisible(true);
+        
+        System.setOut (new PrintStream(this));
+		System.out.println("GUI successfully started. @GUI.");
+		initiated = true;
         /*
         //Options for the JComboBox 
         String[] fruitOptions = {"Apple", "Apricot", "Banana"
@@ -102,5 +114,15 @@ public class SurrogateUI implements Runnable {
         //make sure the JFrame is visible
         guiFrame.setVisible(true);
         */
+	}
+
+	public void write(int b) throws IOException {
+		if(b == '\n'){
+			final String text = sb.toString() + "\n";
+			messageOutput.append(text);
+            sb.setLength(0);
+		} else {
+			sb.append((char)b);
+		}	
 	}
 }
