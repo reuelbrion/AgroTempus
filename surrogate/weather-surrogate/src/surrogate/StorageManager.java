@@ -1,7 +1,6 @@
 package surrogate;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,7 +34,6 @@ public class StorageManager implements Runnable {
 		System.out.println("Storage Manager successfully started. @Storage manager.");
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void loadDummyData() {
 		//load dummy regional weather data
     	JSONParser parser = new JSONParser();
@@ -118,6 +116,7 @@ public class StorageManager implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Storage manager closing down. @Storage manager.");
 	}
 	
 	private void computationStorage() {

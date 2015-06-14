@@ -1,13 +1,14 @@
 package surrogate;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class RequestServer implements Runnable {
 
-final static int SERVER_PORT = 11113;
+private static final int SERVER_PORT = 11113;
+private static final long SLEEP_TIME_ACCEPT_SOCKET = 1000;
 
 public volatile boolean running;
 public volatile StorageManager storageManager;
@@ -15,29 +16,39 @@ public volatile StorageManager storageManager;
 RequestServer(StorageManager storageManager){
 	this.storageManager = storageManager;
 }
-	
-	@Override
 	public void run() {
 		running = true;
-        ServerSocket serverSocket = null;
+        ServerSocketChannel serverSocket = null;
         try {
-            serverSocket = new ServerSocket(SERVER_PORT);
+            serverSocket = ServerSocketChannel.open();
+            serverSocket.socket().bind(new InetSocketAddress(SERVER_PORT));
+            serverSocket.configureBlocking(false);
             System.out.println("Server socket successfully opened. @Request server.");
-        } catch (IOException e) {
-            System.err.println("Could not listen on port: " + SERVER_PORT + ".");
+        } catch (Exception e) {
+            System.out.println("Could not listen on port: " + SERVER_PORT + ". @Request server.");
             running = false;
         }
 
         while(running){
-        	Socket acceptSocket = null;
+        	SocketChannel acceptSocket = null;
             try {
                 acceptSocket = serverSocket.accept();
-                System.out.println("connection from mobile accepted. @Request server.");
-                Thread newThread = new Thread(new RequestServerWorker(acceptSocket, storageManager));
-                newThread.start();
+                if (acceptSocket == null) {
+                    try {
+						Thread.sleep(SLEEP_TIME_ACCEPT_SOCKET);
+					} catch (InterruptedException e) {
+						System.out.println("Couldn't sleep. @Request server.");
+						e.printStackTrace();
+					}
+                } else {
+                    System.out.println("Connection from mobile accepted. @Request server.");
+                    Thread newThread = new Thread(new RequestServerWorker(acceptSocket.socket(), storageManager));
+                    newThread.start();
+                }
             } catch (IOException e) {
-                System.err.println("Accept failed. @Request server.");
+                System.out.println("Accept failed. @Request server.");
             }
         }  
+        System.out.println("Request server closing down. @Request server.");
 	}
 }

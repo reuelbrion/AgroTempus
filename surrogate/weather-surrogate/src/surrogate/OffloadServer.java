@@ -1,12 +1,13 @@
 package surrogate;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class OffloadServer implements Runnable {
-final static int SERVER_PORT = 11114;
+	private static final int SERVER_PORT = 11114;
+	private static final long SLEEP_TIME_ACCEPT_SOCKET = 1000;
 	
 	public volatile boolean running;
 	public volatile StorageManager storageManager;
@@ -19,26 +20,38 @@ final static int SERVER_PORT = 11114;
 	}
 	
 	public void run() {
-		ServerSocket serverSocket = null;
+		ServerSocketChannel serverSocket = null;
         try {
-            serverSocket = new ServerSocket(SERVER_PORT);
+            serverSocket = ServerSocketChannel.open();
+            serverSocket.socket().bind(new InetSocketAddress(SERVER_PORT));
+            serverSocket.configureBlocking(false);
             System.out.println("Server socket successfully opened. @Offload server.");
-        } catch (IOException e) {
-            System.err.println("Could not listen on port: " + SERVER_PORT + ". @Offload server.");
+        } catch (Exception e) {
+            System.out.println("Could not listen on port: " + SERVER_PORT + ". @Offload server.");
             running = false;
         }
 
         while(running){
-        	Socket acceptSocket = null;
+        	SocketChannel acceptSocket = null;
             try {
                 acceptSocket = serverSocket.accept();
-                System.out.println("connection from mobile accepted. @Offload server.");
-                Thread newThread = new Thread(new OffloadServerWorker(acceptSocket, storageManager, offloadComputationManager));
-                newThread.start();
+                if (acceptSocket == null) {
+                    try {
+						Thread.sleep(SLEEP_TIME_ACCEPT_SOCKET);
+					} catch (InterruptedException e) {
+						System.out.println("Couldn't sleep. @Offload server.");
+						e.printStackTrace();
+					}
+                } else {
+                	System.out.println("Connection from mobile accepted. @Offload server.");
+                    Thread newThread = new Thread(new OffloadServerWorker(acceptSocket.socket(), storageManager, offloadComputationManager));
+                    newThread.start();
+                }
+                
             } catch (IOException e) {
-                System.err.println("Accept failed. @Offload server");
+                System.out.println("Accept failed. @Offload server");
             }
-            
         }   
+        System.out.println("Offload server closing down. @Offload server.");
 	}
 }

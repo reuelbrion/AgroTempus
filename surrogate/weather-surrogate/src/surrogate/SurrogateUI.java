@@ -1,119 +1,127 @@
 package surrogate;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class SurrogateUI extends OutputStream implements Runnable {
+	private final static String CLOSE_UI_EXIT_SURROGATE = "This will stop the surrogate. Are you sure?";
+	private final static String CLOSE_UI_SURROGATE_KEEPS_RUNNING = "This will close the UI, and keep the surrogate running. Are you sure?";
+		
 	private final JTextArea messageOutput;	
 	private final StringBuilder sb;
 	public final Surrogate surrogate;
 	public volatile boolean initiated;
+	public volatile boolean running;
+	private boolean closingWindow;
+	private String closeString;
 	
 	public SurrogateUI(Surrogate surrogate){
 		sb = new StringBuilder();
 		messageOutput = new JTextArea(25, 80);
 		messageOutput.setEditable (false);
 		initiated = false;
+		running = true;
+		closingWindow = false;
 		this.surrogate = surrogate;
+		closeString = CLOSE_UI_SURROGATE_KEEPS_RUNNING;
 	}
 	
 	public void run() {
 		JFrame guiFrame = new JFrame();
-	    guiFrame.setTitle("Weather Surrogate");
-	    guiFrame.setSize(300,250);
+	    guiFrame.setTitle("Weather Surrogate User Interface");
 	    guiFrame.setLocationRelativeTo(null);
-	    guiFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
-        Container contentPane = guiFrame.getContentPane();
-        contentPane.add(new JScrollPane (messageOutput, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
-        JButton exitUIButton = new JButton("Exit UI");
-        JButton closeSurrogateButton = new JButton("Stop surrogate");
-        
-        //contentPane.setLayout(new BorderLayout ());
-        
-        contentPane.add(exitUIButton,BorderLayout.SOUTH);
-        contentPane.add(closeSurrogateButton,BorderLayout.SOUTH);
-        
-        guiFrame.pack ();
+	    guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+	    setExitListener(guiFrame);
+        //title panel
+	    final JPanel titlePanel = new JPanel();
+	    JLabel titleLabel = new JLabel("Weather Surrogate: component message overview.");
+        titlePanel.add(titleLabel);
+	    guiFrame.add(titlePanel, BorderLayout.NORTH);
+	    //message panel
+	    final JPanel messagePanel = new JPanel();
+        messagePanel.add(new JScrollPane (messageOutput, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+        guiFrame.add(messagePanel, BorderLayout.CENTER);
+        //buttons
+        final JPanel buttonPanel = new JPanel();
+        JButton exitUIButton = new JButton("Exit User Interface");
+        setExitUIButtonAction(exitUIButton, guiFrame);
+        JButton closeSurrogateButton = new JButton("Stop Surrogate");
+        setCloseSurrogateButtonAction(closeSurrogateButton, guiFrame);
+        buttonPanel.add(exitUIButton);
+        buttonPanel.add(closeSurrogateButton);
+        buttonPanel.setVisible(true);
+        guiFrame.add(buttonPanel, BorderLayout.SOUTH);
+    
+        guiFrame.pack();
         guiFrame.setVisible(true);
         
+		System.out.println("Starting GUI. @GUI.");
         System.setOut (new PrintStream(this));
-		System.out.println("GUI successfully started. @GUI.");
 		initiated = true;
-        /*
-        //Options for the JComboBox 
-        String[] fruitOptions = {"Apple", "Apricot", "Banana"
-                ,"Cherry", "Date", "Kiwi", "Orange", "Pear", "Strawberry"};
-        
-        //Options for the JList
-        String[] vegOptions = {"Asparagus", "Beans", "Broccoli", "Cabbage"
-                , "Carrot", "Celery", "Cucumber", "Leek", "Mushroom"
-                , "Pepper", "Radish", "Shallot", "Spinach", "Swede"
-                , "Turnip"};
-        
-        //The first JPanel contains a JLabel and JCombobox
-        final JPanel comboPanel = new JPanel();
-        JLabel comboLbl = new JLabel("Fruits:");
-        JComboBox fruits = new JComboBox(fruitOptions);
-        
-        comboPanel.add(comboLbl);
-        comboPanel.add(fruits);
-        
-        //Create the second JPanel. Add a JLabel and JList and
-        //make use the JPanel is not visible.
-        final JPanel listPanel = new JPanel();
-        listPanel.setVisible(false);
-        JLabel listLbl = new JLabel("Vegetables:");
-        JList vegs = new JList(vegOptions);
-        vegs.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-          
-        listPanel.add(listLbl);
-        listPanel.add(vegs);
-        
-        JButton vegFruitBut = new JButton( "Fruit or Veg");
-        
-        //The ActionListener class is used to handle the
-        //event that happens when the user clicks the button.
-        //As there is not a lot that needs to happen we can 
-        //define an anonymous inner class to make the code simpler.
-        vegFruitBut.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent event)
-            {
-               //When the fruit of veg button is pressed
-               //the setVisible value of the listPanel and
-               //comboPanel is switched from true to 
-               //value or vice versa.
-               listPanel.setVisible(!listPanel.isVisible());
-               comboPanel.setVisible(!comboPanel.isVisible());
+		while(running){
+			
+		}
+		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+	}
 
+	private void setExitListener(JFrame guiFrame) {
+		WindowListener exitListener = new WindowAdapter() {
+	        public void windowClosing(WindowEvent e) {
+	            int confirm = JOptionPane.showOptionDialog(
+	                 null, closeString, 
+	                 "Please confirm.", JOptionPane.YES_NO_OPTION, 
+	                 JOptionPane.QUESTION_MESSAGE, null, null, null);
+	            if (confirm == 0) {
+	            	guiFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	            	System.out.println("Closing GUI. @GUI.");
+	            	closingWindow = true;
+	            }
+	        }
+	    };
+	    guiFrame.addWindowListener(exitListener);
+	}
+
+	private void setCloseSurrogateButtonAction(JButton closeSurrogateButton, JFrame guiFrame) {
+		closeSurrogateButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event){
+            	closeString = CLOSE_UI_EXIT_SURROGATE;
+            	guiFrame.dispatchEvent(new WindowEvent(guiFrame, WindowEvent.WINDOW_CLOSING));
+            	if(closingWindow){
+                	surrogate.userExit = true;
+            	} else {
+            		closeString = CLOSE_UI_SURROGATE_KEEPS_RUNNING;
+            	}
             }
         });
-        
-        //The JFrame uses the BorderLayout layout manager.
-        //Put the two JPanels and JButton in different areas.
-        guiFrame.add(comboPanel, BorderLayout.NORTH);
-        guiFrame.add(listPanel, BorderLayout.CENTER);
-        guiFrame.add(vegFruitBut,BorderLayout.SOUTH);
-        
-        //make sure the JFrame is visible
-        guiFrame.setVisible(true);
-        */
+	}
+
+	private void setExitUIButtonAction(JButton exitUIButton, JFrame guiFrame) {
+		exitUIButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event){
+            	closeString = CLOSE_UI_SURROGATE_KEEPS_RUNNING;
+            	guiFrame.dispatchEvent(new WindowEvent(guiFrame, WindowEvent.WINDOW_CLOSING));
+            	if(closingWindow){
+            		surrogate.userExitUI = true;
+            	}
+            }
+        });
 	}
 
 	public void write(int b) throws IOException {

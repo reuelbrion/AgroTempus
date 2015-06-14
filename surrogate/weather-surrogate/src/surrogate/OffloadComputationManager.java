@@ -1,6 +1,5 @@
 package surrogate;
 
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class OffloadComputationManager implements Runnable {	
@@ -22,5 +21,6 @@ public class OffloadComputationManager implements Runnable {
                 newThread.start();
 			}
 		}
+		System.out.println("Computation manager closing down. @Computation manager.");
 	}
 }

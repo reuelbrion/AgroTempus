@@ -1,11 +1,13 @@
 package surrogate;
 
-import java.net.*;
-import java.util.ArrayList;
-import java.io.*;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class StorageServer implements Runnable {
-	final static int SERVER_PORT = 11112;
+	private static final int SERVER_PORT = 11112;
+	private static final long SLEEP_TIME_ACCEPT_SOCKET = 1000;
 	
 	public volatile boolean running;
 	public volatile StorageManager storageManager;
@@ -16,26 +18,37 @@ public class StorageServer implements Runnable {
 	
 	public void run() {
 		running = true;
-        ServerSocket serverSocket = null;
+        ServerSocketChannel serverSocket = null;
         try {
-            serverSocket = new ServerSocket(SERVER_PORT);
+            serverSocket = ServerSocketChannel.open();
+            serverSocket.socket().bind(new InetSocketAddress(SERVER_PORT));
+            serverSocket.configureBlocking(false);
             System.out.println("Server socket successfully opened. @Storage server.");
-        } catch (IOException e) {
-            System.err.println("Could not listen on port: " + SERVER_PORT + ". @Storage server.");
+        } catch (Exception e) {
+            System.out.println("Could not listen on port: " + SERVER_PORT + ". @Storage server.");
             running = false;
         }
 
         while(running){
-        	Socket acceptSocket = null;
+        	SocketChannel acceptSocket = null;
             try {
                 acceptSocket = serverSocket.accept();
-                System.out.println("connection from mobile accepted. @Storage server.");
-                Thread newThread = new Thread(new StorageServerWorker(acceptSocket, storageManager));
-                newThread.start();
+                if (acceptSocket == null) {
+                    try {
+						Thread.sleep(SLEEP_TIME_ACCEPT_SOCKET);
+					} catch (InterruptedException e) {
+						System.out.println("Couldn't sleep. @Storage server.");
+						e.printStackTrace();
+					}
+                } else {
+                    System.out.println("Connection from mobile accepted. @Storage server.");
+                    Thread newThread = new Thread(new StorageServerWorker(acceptSocket.socket(), storageManager));
+                    newThread.start();
+                }
             } catch (IOException e) {
-                System.err.println("Accept failed. @Storage server");
+                System.out.println("Accept failed. @Storage server.");
             }
-            
-        }   
+        }    
+        System.out.println("Storage server closing down. @Storage server.");
 	}
 }

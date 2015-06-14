@@ -210,6 +210,7 @@ public class RequestServerWorker implements Runnable {
 		//TODO: handle timeout in response
 			String sendStr = createSendString(list);
 		try {
+			out.write(sendStr);
 			out.flush();
 			System.out.println("Sending data to requestor. @Request worker.");
 		} catch (IOException e) {
@@ -224,8 +225,7 @@ public class RequestServerWorker implements Runnable {
 			if((inputLine = in.readLine()) != null){
 				mobResponse = (JSONObject)parser.parse(inputLine);
 				if(mobResponse.containsKey("response") && mobResponse.get("response").equals("ok")){
-					System.out.println("Succesfully sent data to requestor. @Request worker. Data sent:");
-					System.out.println(sendStr);
+					System.out.println("Succesfully sent data to requestor. @Request worker.");
 					return true;
 			    }
 				else {
