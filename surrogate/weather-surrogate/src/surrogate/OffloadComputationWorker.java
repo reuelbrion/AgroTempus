@@ -28,7 +28,7 @@ public class OffloadComputationWorker implements Runnable {
 	public void run() {
 		String type = (String)computationRequest.request.get("type");
 		if(type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
-			doRegression();
+			serviceRegression();
 		} else if (type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
 			//TODO
 		} else {
@@ -36,7 +36,7 @@ public class OffloadComputationWorker implements Runnable {
 		}
 	}
 
-	private void doRegression() {
+	private void serviceRegression() {
 		RegionalRequest regionalRequest = new RegionalRequest((long)computationRequest.request.get("startdate"), System.currentTimeMillis(), storageManager);
 		storageManager.regionalRequestQueue.add(regionalRequest);
 		while(!regionalRequest.ready){
@@ -78,8 +78,9 @@ public class OffloadComputationWorker implements Runnable {
 			LineFunction2D lineFunction = new LineFunction2D(functionItems[0], functionItems[1]);
 			lon = (long)computationRequest.request.get("startdate");
 			Long now = System.currentTimeMillis();
-			XYDataset regressionLineDataset = DatasetUtilities.sampleFunction2D(lineFunction, lon.doubleValue(), now.doubleValue(), dataList.size(),"Regression line");
-			//regressionData.addSeries(regressionLineDataset);
+			XYSeriesCollection regressionLineDataset = (XYSeriesCollection)DatasetUtilities.sampleFunction2D(lineFunction, lon.doubleValue(), now.doubleValue(), dataList.size(),"Regression line");
+			regressionLineDataset.getSeries();
+			regressionData.addSeries( regressionLineDataset);
 			JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
 			
 			/*XYPlot plot = (XYPlot) chart.getPlot();
