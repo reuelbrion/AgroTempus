@@ -24,6 +24,9 @@ function pushStagedData(){
 	if(stagingList.length > 0){
 		//in discovery.js
 		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
+	} else {
+		//turn periodical data push back on
+		interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
 	}
 }
 

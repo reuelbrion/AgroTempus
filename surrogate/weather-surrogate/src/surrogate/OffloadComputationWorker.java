@@ -28,7 +28,7 @@ public class OffloadComputationWorker implements Runnable {
 	public void run() {
 		String type = (String)computationRequest.request.get("type");
 		if(type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
-			serviceRegression();
+			getRegressionData();
 		} else if (type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
 			//TODO
 		} else {
@@ -36,7 +36,7 @@ public class OffloadComputationWorker implements Runnable {
 		}
 	}
 
-	private void serviceRegression() {
+	private void getRegressionData() {
 		RegionalRequest regionalRequest = new RegionalRequest((long)computationRequest.request.get("startdate"), System.currentTimeMillis(), storageManager);
 		storageManager.regionalRequestQueue.add(regionalRequest);
 		while(!regionalRequest.ready){
@@ -57,30 +57,16 @@ public class OffloadComputationWorker implements Runnable {
 			Long lon;
 			Double dub = null;
 			XYSeriesCollection regressionData = new XYSeriesCollection();
-			XYSeries seriesData = new XYSeries("input data");
-			for(JSONObject JSONObj : dataList){
-				Object obj = JSONObj.get(regressionVariable);
-				if(obj != null){
-					if(obj instanceof Double){
-						dub = (double)obj;
-					}
-					else if(obj instanceof Long){
-						lon = (Long)obj;
-						dub = lon.doubleValue();
-					}
-					lon = (Long)JSONObj.get("time");
-					//TODO: at this moment, only 1 piece of data per date is used, should be for example the mean
-					seriesData.addOrUpdate(lon.doubleValue(), dub.doubleValue());
-				}
-			}
-			regressionData.addSeries(seriesData);
+			XYSeries seriesData = createSeriesDataRegression(dataList, regressionVariable);
+			
+			/*regressionData.addSeries(seriesData);
 			double[] functionItems = Regression.getOLSRegression(regressionData, 0);
 			LineFunction2D lineFunction = new LineFunction2D(functionItems[0], functionItems[1]);
 			lon = (long)computationRequest.request.get("startdate");
 			Long now = System.currentTimeMillis();
 			XYSeriesCollection regressionLineDataset = (XYSeriesCollection)DatasetUtilities.sampleFunction2D(lineFunction, lon.doubleValue(), now.doubleValue(), dataList.size(),"Regression line");
 			regressionLineDataset.getSeries();
-			regressionData.addSeries( regressionLineDataset);
+			regressionData.addSeries( regressionLineDataset);*/
 			JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
 			
 			/*XYPlot plot = (XYPlot) chart.getPlot();
@@ -97,5 +83,27 @@ public class OffloadComputationWorker implements Runnable {
 			System.out.println("Error with regression computation request. @Computation worker.");
 			e.printStackTrace();
 		}
+	}
+
+	private XYSeries createSeriesDataRegression(ArrayList<JSONObject> dataList, String regressionVariable) {
+		XYSeries output = new XYSeries("input data");
+		Long lon;
+		Double dub = null;
+		for(JSONObject JSONObj : dataList){
+			Object obj = JSONObj.get(regressionVariable);
+			if(obj != null){
+				if(obj instanceof Double){
+					dub = (double)obj;
+				}
+				else if(obj instanceof Long){
+					lon = (Long)obj;
+					dub = lon.doubleValue();
+				}
+				lon = (Long)JSONObj.get("time");
+				//TODO: at this moment, only 1 piece of data per date is used, should be for example the mean
+				output.addOrUpdate(lon.doubleValue(), dub.doubleValue());
+			}
+		}
+		return output;
 	}
 }

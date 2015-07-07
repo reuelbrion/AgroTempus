@@ -5,6 +5,7 @@ function requestOffload(offloadParams, serviceType, callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
+	//discovery.js
 	getSurrogate(serviceType, null, requestOffloadCallback, offloadParams);
 	callback("requesting");
 	requestedOffloadCallback = callback;

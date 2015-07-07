@@ -166,17 +166,17 @@ public class StorageServerWorker implements Runnable {
 		if(serviceType == Surrogate.SERVICE_TYPE_STORE_WEATHER_DATA){
 			System.out.println("Sending data to Storage manager. @Storage worker.");
 			
-			ArrayList<JSONObject> backupList = new ArrayList<JSONObject>();
+			ArrayList<JSONObject> restoreList = new ArrayList<JSONObject>();
 			for(JSONObject obj : parsedJSON){
 				try{
 					storageManager.weatherStorageQueue.add(obj);
-					backupList.add(obj);
+					restoreList.add(obj);
 				} catch(Exception e) {
 					//undo saves on exception
 					System.out.println("Error sending data to Storage manager, data was not stored. @Storage worker.");
 					e.printStackTrace();
 					success = false;
-					for(JSONObject obj2 : backupList){
+					for(JSONObject obj2 : restoreList){
 						storageManager.weatherStorageQueue.remove(obj2);
 					}
 				}

@@ -233,7 +233,7 @@ function selectRegressionVariable(value){
 
 function regressionCallBack(status, inData, args){
 	if(status == "requesting"){
-		document.getElementById("regression-span").innerHTML = "request has been sent<br> to surrogate<br>";
+		document.getElementById("regression-span").innerHTML = "Trying to send request<br> to surrogate<br>";
 	}
 	if(status == "ready"){
 		addRegressionElements(inData);

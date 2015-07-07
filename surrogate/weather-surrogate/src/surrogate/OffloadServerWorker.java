@@ -133,6 +133,9 @@ public class OffloadServerWorker implements Runnable {
 				request = (JSONObject)parser.parse(inputLine);
 				System.out.println(inputLine);
 				if(validateRegressionRequest(request)){
+					
+					//TODO:ticket number for storage.
+					
 					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request));
 					return true;
 				}
