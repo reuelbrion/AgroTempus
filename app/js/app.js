@@ -212,8 +212,8 @@ function regressionSubmitClick(){
 	offloadParams.startdate = $("#regression-date-input").val();
 	offloadParams.startdate = Date.parse(offloadParams.startdate);
 	offloadParams.extrapolatedays = $("#regression-days-input").val();
-	if(typeof offloadParams.days === 'string'){
-		offloadParams.days = parseInt(offloadParams.days);
+	if(typeof offloadParams.extrapolatedays === 'string'){
+		offloadParams.extrapolatedays = parseInt(offloadParams.extrapolatedays);
 	}
 	//offload request in offload.js
 	requestOffload(offloadParams, SERVICE_TYPE_OFFLOAD_REGRESSION, regressionCallBack);

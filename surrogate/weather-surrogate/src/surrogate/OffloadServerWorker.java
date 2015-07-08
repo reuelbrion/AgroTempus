@@ -127,17 +127,19 @@ public class OffloadServerWorker implements Runnable {
 		JSONParser parser = new JSONParser();
 		JSONObject request;
 		String inputLine;
-		System.out.println("Adding regression request. @Offload worker.");
+		System.out.println("Trying to add regression request. @Offload worker.");
 		try {
 			if ((inputLine = in.readLine()) != null) {
 				request = (JSONObject)parser.parse(inputLine);
 				System.out.println(inputLine);
 				if(validateRegressionRequest(request)){
-					
 					//TODO:ticket number for storage.
 					
 					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request));
+					System.out.println("Added regression request to queue. @Offload worker.");
 					return true;
+				} else {
+					//TODO: couldnt validate regression request
 				}
 			} else {
 				handleUnknownMessage();
@@ -150,11 +152,12 @@ public class OffloadServerWorker implements Runnable {
 		return false;
 	}
 
+	//TODO: instead of checking for int || long, cast to one of them (safer later on).
 	private boolean validateRegressionRequest(JSONObject JSONRequest) {
 		if(JSONRequest.containsKey("type") && JSONRequest.containsKey("variable") && JSONRequest.containsKey("regressiontype") 
-		&& JSONRequest.containsKey("startdate") && JSONRequest.containsKey("days")){
+		&& JSONRequest.containsKey("startdate") && JSONRequest.containsKey("extrapolatedays")){
 			if(JSONRequest.get("type") instanceof String && JSONRequest.get("variable") instanceof String && JSONRequest.get("type") instanceof String
-			&& JSONRequest.get("startdate") instanceof Long && (JSONRequest.get("days") instanceof Long || JSONRequest.get("days") instanceof Integer)){
+			&& JSONRequest.get("startdate") instanceof Long && JSONRequest.get("extrapolatedays") instanceof Long){
 				return true;
 			}
 		}
