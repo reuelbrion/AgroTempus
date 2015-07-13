@@ -1,11 +1,17 @@
 package surrogate;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Date;
+
 import javax.swing.JFrame;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.function.LineFunction2D;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.statistics.Regression;
@@ -54,35 +60,92 @@ public class OffloadComputationWorker implements Runnable {
 	private void performRegression(ArrayList<JSONObject> dataList) {
 		try{
 			String regressionVariable = (String)computationRequest.request.get("variable");
-			Long lon;
-			Double dub = null;
-			XYSeriesCollection regressionData = new XYSeriesCollection();
-			XYSeries seriesData = createSeriesDataRegression(dataList, regressionVariable);
+			double minMaxDomainValues[] = getMinMaxDomainValues(dataList); 
+			double minMaxRangeValues[] = getMinMaxRangeValues(dataList, regressionVariable);
+			if(minMaxDomainValues == null || minMaxRangeValues == null){
+				//TODO: prints to console instead of UI
+				throw new Exception("Not enough values in data set. @Computation worker.");
+			} else {
+				XYSeriesCollection regressionData = new XYSeriesCollection();
+				XYSeries seriesData = createSeriesDataRegression(dataList, regressionVariable);
+				regressionData.addSeries(seriesData);
+				JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
+				XYPlot plot = chart.getXYPlot();
+				plot.getDomainAxis().setRange(minMaxDomainValues[0], minMaxDomainValues[1]);
+				plot.getRangeAxis().setRange(minMaxRangeValues[0], minMaxRangeValues[1]);
+				double regressionParameters[] = Regression.getOLSRegression(plot.getDataset(), 0);
+				LineFunction2D lineFunction = new LineFunction2D(regressionParameters[0], regressionParameters[1]);
+				XYDataset lineDataset = DatasetUtilities.sampleFunction2D(lineFunction, minMaxDomainValues[0], minMaxDomainValues[1], 10000, "Fitted regression line");
+				plot.setDataset(1, lineDataset);
+				XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
+				lineRenderer.setSeriesPaint(0, Color.YELLOW);
+				plot.setRenderer(1, lineRenderer);
+				ChartPanel chartPanel = new ChartPanel(chart);
+				JFrame plotFrame = new JFrame();
+				plotFrame.setContentPane(chartPanel);
+				plotFrame.setSize(640,430);
+				plotFrame.setVisible(true);
+				plotFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			}
 			
-			/*regressionData.addSeries(seriesData);
-			double[] functionItems = Regression.getOLSRegression(regressionData, 0);
-			LineFunction2D lineFunction = new LineFunction2D(functionItems[0], functionItems[1]);
-			lon = (long)computationRequest.request.get("startdate");
-			Long now = System.currentTimeMillis();
-			XYSeriesCollection regressionLineDataset = (XYSeriesCollection)DatasetUtilities.sampleFunction2D(lineFunction, lon.doubleValue(), now.doubleValue(), dataList.size(),"Regression line");
-			regressionLineDataset.getSeries();
-			regressionData.addSeries( regressionLineDataset);*/
-			JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
-			
-			/*XYPlot plot = (XYPlot) chart.getPlot();
-			DateAxis axis = (DateAxis) plot.getDomainAxis();
-			axis.setDateFormatOverride(new SimpleDateFormat("dd-MM-yy")); */
-			
-			ChartPanel chartPanel = new ChartPanel(chart);
-			JFrame plotFrame = new JFrame();
-			plotFrame.setContentPane(chartPanel);
-			plotFrame.setSize(640,430);
-			plotFrame.setVisible(true);
-			plotFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		} catch (Exception e) {
 			System.out.println("Error with regression computation request. @Computation worker.");
 			e.printStackTrace();
 		}
+	}
+
+	private double[] getMinMaxRangeValues(ArrayList<JSONObject> dataList, String regressionVariable) {
+		double[] output = new double[2];
+		Double minValue = Double.MAX_VALUE;
+		Double maxValue = Double.MIN_VALUE;
+		for(JSONObject JSONObj : dataList){
+			Object obj = JSONObj.get(regressionVariable);
+			if(obj != null){
+				if(obj instanceof Double){
+					Double compare = (Double) obj;
+					if(compare < minValue){
+						minValue = compare;
+					}
+					if(compare > maxValue){
+						maxValue = compare;
+					}
+				}
+			}
+		}
+		if(minValue == Double.MAX_VALUE || maxValue == Double.MIN_VALUE || minValue == maxValue){
+			return null;
+		} else {
+			output[0] = minValue.doubleValue();
+			output[1] = maxValue.doubleValue();
+		}
+		return output;
+	}
+
+	private double[] getMinMaxDomainValues(ArrayList<JSONObject> dataList) {
+		double[] output = new double[2];
+		Long minValue = Long.MAX_VALUE;
+		Long maxValue = Long.MIN_VALUE;
+		for(JSONObject JSONObj : dataList){
+			Object obj = JSONObj.get("time");
+			if(obj != null){
+				if(obj instanceof Long){
+					long lon = (Long)obj;
+					if(lon < minValue){
+						minValue = lon;
+					}
+					if(lon > maxValue){
+						maxValue = lon;
+					}
+				}
+			}
+		}
+		if(minValue == Long.MAX_VALUE || maxValue == Long.MIN_VALUE || minValue == maxValue){
+			return null;
+		} else {
+			output[0] = minValue.doubleValue();
+			output[1] = maxValue.doubleValue();
+		}
+		return output;
 	}
 
 	private XYSeries createSeriesDataRegression(ArrayList<JSONObject> dataList, String regressionVariable) {
