@@ -12,10 +12,12 @@ public class OffloadServer implements Runnable {
 	public volatile boolean running;
 	public volatile StorageManager storageManager;
 	public volatile OffloadComputationManager offloadComputationManager;
+	private String surrogateName;
 	
-	OffloadServer(StorageManager storageManager, OffloadComputationManager offloadComputationManager){
+	OffloadServer(StorageManager storageManager, OffloadComputationManager offloadComputationManager, String name){
 		this.storageManager = storageManager;
 		this.offloadComputationManager = offloadComputationManager;
+		surrogateName = name;
 		running = true;
 	}
 	
@@ -44,7 +46,7 @@ public class OffloadServer implements Runnable {
 					}
                 } else {
                 	System.out.println("Connection from mobile accepted. @Offload server.");
-                    Thread newThread = new Thread(new OffloadServerWorker(acceptSocket.socket(), storageManager, offloadComputationManager));
+                    Thread newThread = new Thread(new OffloadServerWorker(acceptSocket.socket(), storageManager, offloadComputationManager, surrogateName));
                     newThread.start();
                 }
                 

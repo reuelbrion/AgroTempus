@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -15,11 +16,15 @@ public class OffloadServerWorker implements Runnable {
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
 	public volatile OffloadComputationManager offloadComputationManager;
+	private String surrogateName;
+	private String myTicket;
 
-	public OffloadServerWorker(Socket clientSocket, StorageManager storageManager, OffloadComputationManager offloadComputationManager) {
+	public OffloadServerWorker(Socket clientSocket, StorageManager storageManager, OffloadComputationManager offloadComputationManager, String surrogateName) {
 		this.clientSocket = clientSocket;
 		this.storageManager = storageManager;
 		this.offloadComputationManager = offloadComputationManager;
+		this.surrogateName = surrogateName;
+		myTicket = null;
 		out = null;
 	}
 	
@@ -53,10 +58,10 @@ public class OffloadServerWorker implements Runnable {
 			}
 			
 	        if(success){
-	        	//?
+	        	//
 	        }
 	        else{
-	        	//?
+	        	//returnFailureMessage();
 	        }  
 		}
 		try {
@@ -66,6 +71,25 @@ public class OffloadServerWorker implements Runnable {
 			System.out.println("Error closing client socket. @Offload worker.");
 			e.printStackTrace();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void returnTicket() {
+		try {
+    		if(out == null){
+    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+    		}
+    		JSONObject response = new JSONObject();
+			response.put("response", "success");
+			response.put("ticket", myTicket);
+			out.write(response.toJSONString() + "\n");
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("Error opening BufferedWriter. @Offload worker.");
+			e.printStackTrace();
+			return;
+		}
+		System.out.println("Successfully sent ticket to service requestor. @Offload worker.");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -133,10 +157,11 @@ public class OffloadServerWorker implements Runnable {
 				request = (JSONObject)parser.parse(inputLine);
 				System.out.println(inputLine);
 				if(validateRegressionRequest(request)){
-					//TODO:ticket number for storage.
-					
-					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request));
-					System.out.println("Added regression request to queue. @Offload worker.");
+					System.out.println(request.toString());
+					myTicket = createTicketumber();
+					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request, myTicket));
+					System.out.println("Added regression request to queue.->\nTicket number: " + myTicket+ " @Offload worker.");
+					returnTicket();
 					return true;
 				} else {
 					//TODO: couldnt validate regression request
@@ -152,7 +177,10 @@ public class OffloadServerWorker implements Runnable {
 		return false;
 	}
 
-	//TODO: instead of checking for int || long, cast to one of them (safer later on).
+	private String createTicketumber() {
+		return surrogateName + this.hashCode() + System.currentTimeMillis();
+	}
+
 	private boolean validateRegressionRequest(JSONObject JSONRequest) {
 		if(JSONRequest.containsKey("type") && JSONRequest.containsKey("variable") && JSONRequest.containsKey("regressiontype") 
 		&& JSONRequest.containsKey("startdate") && JSONRequest.containsKey("extrapolatedays")){

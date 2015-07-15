@@ -183,7 +183,7 @@ function editTimeClick(){
 }
 
 function predictionSubmitClick(){
-	setSectionVisible("prediction-results");
+	setSectionVisible("prediction-confirm");
 	document.getElementById("prediction-span").innerHTML = "sending request<br>";
 	var offloadParams = new Object();
 	offloadParams.variable = $("#prediction-select").val();
@@ -203,7 +203,7 @@ function predictionCallBack(status){
 }
 
 function regressionSubmitClick(){
-	setSectionVisible("regression-results");
+	setSectionVisible("regression-confirm");
 	document.getElementById("regression-span").innerHTML = "locating surrogate<br>";
 	var offloadParams = new Object();
 	offloadParams.type = SERVICE_TYPE_OFFLOAD_REGRESSION;
@@ -233,18 +233,17 @@ function selectRegressionVariable(value){
 
 function regressionCallBack(status, inData, args){
 	if(status == "requesting"){
-		document.getElementById("regression-span").innerHTML = "Trying to send request<br> to surrogate<br>";
+		document.getElementById("regression-span").innerHTML = "trying to send request<br> to surrogate<br>";
 	}
-	if(status == "ready"){
-		addRegressionElements(inData);
+	if(status == "unknown"){
+		document.getElementById("regression-span").innerHTML = "unknown response from surrogate<br>";
+	}
+	if(status == "success"){
+		document.getElementById("regression-span").innerHTML = "request submitted succesfully<br>ticket id:" + inData;
 	}
 	if(status == "failed"){
-		document.getElementById("regression-span").innerHTML = "failed getting data<br>";
+		document.getElementById("regression-span").innerHTML = "failed submitting regression request<br>";
 	}
-}
-
-function addRegressionElements(receivedItems){
-
 }
 
 function backToMainClick(){

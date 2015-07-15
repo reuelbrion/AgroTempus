@@ -13,6 +13,9 @@ public class Surrogate {
 	public final static String SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	private static final long SLEEP_TIME_UI_LOADING = 250; //ms
 
+	private final BufferedReader stdinReader;
+	private final StringBuilder sb;
+	
 	public volatile boolean userExit;
 	public volatile boolean userExitUI;
 	private boolean running;
@@ -28,15 +31,15 @@ public class Surrogate {
 	private Thread storageServerThread;
 	private Thread requestServerThread;
 	private Thread offloadServerThread;
-	
-	private final BufferedReader stdinReader;
-	private final StringBuilder sb;
+	public String name;
 	
 	public Surrogate(){
 		running = true;
 		userExit = false;
 		stdinReader = new BufferedReader(new InputStreamReader(System.in));
 		sb = new StringBuilder();
+		//TODO: get name from setup data
+		name = "Amsterdam-NL";
 	}
 	
 	public static void main(String[] args) {	
@@ -133,7 +136,7 @@ public class Surrogate {
 		requestServer = new RequestServer(storageManager);
 		requestServerThread = new Thread(requestServer);
 		requestServerThread.start();
-		offloadServer = new OffloadServer(storageManager, offloadComputationManager);
+		offloadServer = new OffloadServer(storageManager, offloadComputationManager, name);
 		offloadServerThread = new Thread(offloadServer);
 		offloadServerThread.start();
 	}

@@ -22,20 +22,22 @@ function requestOffloadCallback(surrogateSocket, offloadParams){
 		sendStr+="\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));
 		console.info("Sent:\n" + sendStr);
-		
-		
+		//TODO: add timeout
 		surrogateSocket.ondata = function (event) {
+			var status = "failed";
+			var inData = "";
 			if (typeof event.data === 'string') {
 				//TODO: error checking
 				var reply = JSON.parse(event.data);
-				surrogateSocket.onclose = function (event) {
-					alert(event.data);
-					//requestedOffloadCallback();
+				if(reply.response == "success"){
+					status = "success";
+					inData = reply.ticket;
+				} else {
+					status = "unknown";
 				}
-			} else {
-				surrogateSocket.onclose = function (event) {
-					alert("error");
-				}
+			} 
+			surrogateSocket.onclose = function (event) {
+					requestedOffloadCallback(status, inData);
 			}
 			surrogateSocket.close();
 		}

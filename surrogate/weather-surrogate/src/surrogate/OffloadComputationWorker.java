@@ -1,13 +1,16 @@
 package surrogate;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Date;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;import java.util.Date;
 
 import javax.swing.JFrame;
 
+import org.apache.commons.codec.binary.Base64;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -22,6 +25,8 @@ import org.json.simple.JSONObject;
 
 public class OffloadComputationWorker implements Runnable {
 	final static long SLEEP_TIME_DATA_REQUEST = 1000;
+	private static final int REGRESSION_IMAGE_WIDTH = 400;
+	private static final int REGRESSION_IMAGE_HEIGHT = 400;
 	
 	private ComputationRequest computationRequest;
 	public volatile StorageManager storageManager;
@@ -60,6 +65,7 @@ public class OffloadComputationWorker implements Runnable {
 	private void performRegression(ArrayList<JSONObject> dataList) {
 		try{
 			String regressionVariable = (String)computationRequest.request.get("variable");
+			long extrapolateDays = (long)computationRequest.request.get("extrapolatedays");
 			double minMaxDomainValues[] = getMinMaxDomainValues(dataList); 
 			double minMaxRangeValues[] = getMinMaxRangeValues(dataList, regressionVariable);
 			if(minMaxDomainValues == null || minMaxRangeValues == null){
@@ -71,6 +77,10 @@ public class OffloadComputationWorker implements Runnable {
 				regressionData.addSeries(seriesData);
 				JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
 				XYPlot plot = chart.getXYPlot();
+				if(extrapolateDays > 0){
+					//add ms to domain axis
+					minMaxDomainValues[1] += (86400000d * extrapolateDays); 
+				}
 				plot.getDomainAxis().setRange(minMaxDomainValues[0], minMaxDomainValues[1]);
 				plot.getRangeAxis().setRange(minMaxRangeValues[0], minMaxRangeValues[1]);
 				double regressionParameters[] = Regression.getOLSRegression(plot.getDataset(), 0);
@@ -80,18 +90,43 @@ public class OffloadComputationWorker implements Runnable {
 				XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
 				lineRenderer.setSeriesPaint(0, Color.YELLOW);
 				plot.setRenderer(1, lineRenderer);
-				ChartPanel chartPanel = new ChartPanel(chart);
-				JFrame plotFrame = new JFrame();
-				plotFrame.setContentPane(chartPanel);
-				plotFrame.setSize(640,430);
-				plotFrame.setVisible(true);
-				plotFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				storeRegressionResults(chart);
+				/*
+				 * this nethod call can be used to visualize charts for testing
+				 *
+					chartToScreen(chart);
+				*/
 			}
 			
 		} catch (Exception e) {
 			System.out.println("Error with regression computation request. @Computation worker.");
 			e.printStackTrace();
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void storeRegressionResults(JFreeChart chart) {
+		byte[] imageByteArray = null;
+		try {
+			imageByteArray = ChartUtilities.encodeAsPNG(chart.createBufferedImage(REGRESSION_IMAGE_WIDTH, REGRESSION_IMAGE_HEIGHT));
+		} catch (IOException e) {
+			System.out.println("Error encoding png. @Computation worker.");
+			e.printStackTrace();
+			return;
+		}
+		JSONObject response = new JSONObject();
+		response.put("graphimage", Base64.encodeBase64String(imageByteArray));
+		computationRequest.response = response;		
+	}
+
+	@SuppressWarnings("unused")
+	private void chartToScreen(JFreeChart chart){
+		ChartPanel chartPanel = new ChartPanel(chart);
+		JFrame plotFrame = new JFrame();
+		plotFrame.setContentPane(chartPanel);
+		plotFrame.setSize(640,430);
+		plotFrame.setVisible(true);
+		plotFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 	private double[] getMinMaxRangeValues(ArrayList<JSONObject> dataList, String regressionVariable) {
