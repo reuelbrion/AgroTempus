@@ -10,10 +10,12 @@ import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class RequestServerWorker implements Runnable {
 	private static final long SLEEP_TIME_REGIONAL_REQUEST = 1000;
 	private static final long SLEEP_TIME_FORECAST_REQUEST = 1000;
+	private static final long SLEEP_TIME_COMPUTATION_RESULTS_REQUEST = 1000;
 	protected Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
@@ -201,7 +203,33 @@ public class RequestServerWorker implements Runnable {
 	}
 
 	private boolean getComputationResults(BufferedReader in, BufferedWriter out) {
-		// TODO Auto-generated method stub
+		String inputLine;
+		JSONObject request;
+    	JSONParser parser = new JSONParser();
+		try {
+			if ((inputLine = in.readLine()) != null){
+				request = (JSONObject)parser.parse(inputLine);
+				if(request.containsKey("ticket")){
+					String ticket = (String)request.get("ticket");
+					ComputationResultRequest compRequest = new ComputationResultRequest(this, ticket);
+					//TODO: timeout
+					storageManager.computationResultRequestQueue.add(compRequest);
+					while(!compRequest.ready){
+						Thread.sleep(SLEEP_TIME_COMPUTATION_RESULTS_REQUEST);
+					}
+					String sendStr = compRequest.response.toJSONString() + "\n";
+					out.write(sendStr);
+					out.flush();
+					System.out.println("Sending requested computation results to requestor, ticket: " + ticket + ". @Request worker.");
+					return true;
+			    } else {
+			    	//TODO
+			    }
+			}
+		} catch (Exception e) {
+			System.out.println("Error handling computation result request. @Request worker.");
+			e.printStackTrace();
+		}
 		return false;
 	}
 

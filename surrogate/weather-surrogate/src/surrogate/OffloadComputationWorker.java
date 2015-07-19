@@ -114,9 +114,11 @@ public class OffloadComputationWorker implements Runnable {
 			e.printStackTrace();
 			return;
 		}
-		JSONObject response = new JSONObject();
-		response.put("graphimage", Base64.encodeBase64String(imageByteArray));
-		computationRequest.response = response;		
+		JSONObject results = new JSONObject();
+		results.put("response", "success");
+		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
+		results.put("ticket", computationRequest.ticket);
+		storageManager.computationResultStorageQueue.add(results);
 	}
 
 	@SuppressWarnings("unused")

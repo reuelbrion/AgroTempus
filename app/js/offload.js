@@ -32,6 +32,8 @@ function requestOffloadCallback(surrogateSocket, offloadParams){
 				if(reply.response == "success"){
 					status = "success";
 					inData = reply.ticket;
+					//in dataexchange.js
+					addTicket(inData);
 				} else {
 					status = "unknown";
 				}

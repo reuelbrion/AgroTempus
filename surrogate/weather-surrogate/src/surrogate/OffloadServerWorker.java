@@ -151,13 +151,12 @@ public class OffloadServerWorker implements Runnable {
 		JSONParser parser = new JSONParser();
 		JSONObject request;
 		String inputLine;
-		System.out.println("Trying to add regression request. @Offload worker.");
+		System.out.println("Waiting for regression request. @Offload worker.");
 		try {
 			if ((inputLine = in.readLine()) != null) {
 				request = (JSONObject)parser.parse(inputLine);
-				System.out.println(inputLine);
 				if(validateRegressionRequest(request)){
-					System.out.println(request.toString());
+					System.out.println("Adding regression request. @Offload worker. \n" + request.toString());
 					myTicket = createTicketumber();
 					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request, myTicket));
 					System.out.println("Added regression request to queue.->\nTicket number: " + myTicket+ " @Offload worker.");

@@ -1,13 +1,15 @@
 "use strict";
 
 var stagingList = [];
-var retryStagingInterval = 10000; //ms
+var ticketList = [];
+var retryDataPushInterval = 10000; //ms
+var ticketInterval = 5000; //ms
 var receivingPullData = null;
 var requestedDataCallback = null;
 var requestedForecastCallback = null;
 
-//TODO: setInterval doesnt seem to work
-var interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
+var dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
+var ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
 
 function stageNewSubmit(stagingObject, UICallback){		
 	var stagingString = JSON.stringify(stagingObject);
@@ -18,15 +20,84 @@ function stageNewSubmit(stagingObject, UICallback){
 	UICallback(status);
 }
 
+function clearAllIntervals(){
+	clearInterval(dataPushInterval);
+	clearInterval(ticketInterval);
+}
+
+function resumeAllIntervals(){
+	dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
+	ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
+}
+
+function addTicket(ticket){
+	ticketList.push(ticket);
+}
+
+function getOutstandingTickets(){
+	//turn periodical ticket pull off
+	clearInterval(ticketInterval);
+	if(ticketList.length > 0){
+		//in discovery.js
+		getSurrogate(SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS, null, getOutstandingTicketsCallback, null);
+	} else {
+		//turn periodical ticket pull back on
+		ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
+	}
+}
+
+function getOutstandingTicketsCallback(surrogateSocket){
+	if(surrogateSocket == null){
+	 //TODO: no surrogate found
+	 console.info("Couldn't find surrogate for getting outstanding tickets.");
+	}
+	else{
+		if(ticketList.length > 0){
+			var ticket = ticketList[0];
+			var request = new Object();
+			request.ticket = ticket;
+			var sendStr = JSON.stringify(request) + "\n";
+			surrogateSocket.send(sendStr.toString('utf-8'));
+			console.info("Sent:\n" + sendStr);
+			surrogateSocket.ondata = function (event) {
+				alert("data");
+				var receiveStatus = "failed";
+				if (typeof event.data === 'string'){
+					console.log(event.data);
+					var response = JSON.parse(event.data);
+					if(response.response == "success"){
+						//save and get id
+						console.log(response.graphimage);
+						receiveStatus = "success";
+						ticketList.shift();
+						surrogateSocket.onclose = function (event) {
+							console.info("socket closed");
+						}
+					}	
+				} 
+				if(receiveStatus == "failed"){
+					alert("Error?");
+					surrogateSocket.onclose = function (event) {
+						console.info("socket closed");
+					}
+				}
+				surrogateSocket.close();
+				//turn periodical data push back on
+				dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
+			}
+		}
+	}
+}	
+
 function pushStagedData(){
 	//turn periodical data push off
-	clearInterval(interval);
+	clearInterval(dataPushInterval);
 	if(stagingList.length > 0){
 		//in discovery.js
 		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
 	} else {
 		//turn periodical data push back on
-		interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
+		dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
 	}
 }
 
@@ -64,7 +135,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 			}
 			surrogateSocket.close();
 			//turn periodical data push back on
-			interval = setInterval(function(){pushStagedData()}, retryStagingInterval);
+			dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
 		}
 	}	
 }

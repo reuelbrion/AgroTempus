@@ -6,7 +6,6 @@ public class ComputationRequest {
 	boolean ready;
 	Runnable requestor;
 	JSONObject request;
-	JSONObject response;
 	String ticket;
 	
 	public ComputationRequest(Runnable requestor, JSONObject request, String ticket){
