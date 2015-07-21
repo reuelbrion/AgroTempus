@@ -180,18 +180,21 @@ public class StorageManager implements Runnable {
 	private void handleComputationResultRequest(ComputationResultRequest request) {
 		String requestedTicket = request.ticket;
 		System.out.println("Creating response for computation result request, number: " + requestedTicket +  ".  @Storage Manager");
-		JSONObject response = new JSONObject();
-		response.put("response", "unknown");
-		request.response = response;
+		boolean foundTicket = false;
 		for(JSONObject obj : storedComputationResultObjects){
 			String ticket = (String)obj.get("ticket");
 			if(ticket.equals(requestedTicket)){
-				response = obj;
-				request.ready = true;
-				return;
+				request.response = obj;
+				foundTicket = true;
 			}
 		}
-		System.out.println("Received request for unknown ticket number: " + requestedTicket +  ". @Storage Manager");
+		if(!foundTicket){
+			JSONObject response = new JSONObject();
+			response.put("response", "unknown");
+			request.response = response;
+			System.out.println("Received request for unknown ticket number: " + requestedTicket +  ". @Storage Manager");
+		}
+		request.ready = true;
 	}
 	
 	private void handleForecastRequest(ForecastRequest request) {

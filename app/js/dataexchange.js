@@ -2,14 +2,14 @@
 
 var stagingList = [];
 var ticketList = [];
-var retryDataPushInterval = 10000; //ms
-var ticketInterval = 5000; //ms
+var dataPushIntervalWaitTime = 9000; //ms
+var ticketIntervalWaitTime = 10000; //ms
 var receivingPullData = null;
 var requestedDataCallback = null;
 var requestedForecastCallback = null;
 
-var dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
-var ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
+var dataPushInterval = setInterval(function(){pushStagedData()}, dataPushIntervalWaitTime);
+var ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
 
 function stageNewSubmit(stagingObject, UICallback){		
 	var stagingString = JSON.stringify(stagingObject);
@@ -22,12 +22,12 @@ function stageNewSubmit(stagingObject, UICallback){
 
 function clearAllIntervals(){
 	clearInterval(dataPushInterval);
-	clearInterval(ticketInterval);
+	clearInterval(ticketIntervalWaitTime);
 }
 
 function resumeAllIntervals(){
-	dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
-	ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
+	dataPushInterval = setInterval(function(){pushStagedData()}, dataPushIntervalWaitTime);
+	ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
 }
 
 function addTicket(ticket){
@@ -35,6 +35,7 @@ function addTicket(ticket){
 }
 
 function getOutstandingTickets(){
+	console.log("gonna try to get tickets");
 	//turn periodical ticket pull off
 	clearInterval(ticketInterval);
 	if(ticketList.length > 0){
@@ -42,16 +43,46 @@ function getOutstandingTickets(){
 		getSurrogate(SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS, null, getOutstandingTicketsCallback, null);
 	} else {
 		//turn periodical ticket pull back on
-		ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketInterval);
+		ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
 	}
 }
 
 function getOutstandingTicketsCallback(surrogateSocket){
 	if(surrogateSocket == null){
-	 //TODO: no surrogate found
-	 console.info("Couldn't find surrogate for getting outstanding tickets.");
-	}
-	else{
+		//TODO: no surrogate found
+		console.info("Couldn't find surrogate for getting outstanding tickets.");
+	} else {
+		surrogateSocket.onerror = function (event) {
+			proceed = false;
+			console.info("error during ticket retrieval: " + event.data.name);
+		}
+		surrogateSocket.ondata = function (event) {
+			alert(event.data);
+			/*var receiveStatus = "failed";
+			if (typeof event.data === 'string'){
+				console.log(event.data);
+				var response = JSON.parse(event.data);
+				if(response.response == "success"){
+					//save and get id
+					console.log(response.graphimage);
+					receiveStatus = "success";
+					ticketList.shift();
+					surrogateSocket.onclose = function (event) {
+						console.info("socket closed");
+					}
+				}	
+			} 
+			if(receiveStatus == "failed"){
+				alert("Error?");
+				surrogateSocket.onclose = function (event) {
+					console.info("socket closed");
+				}
+			}*/
+			//turn periodical data push back on
+			ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
+			surrogateSocket.close();
+			
+		}
 		if(ticketList.length > 0){
 			var ticket = ticketList[0];
 			var request = new Object();
@@ -59,37 +90,14 @@ function getOutstandingTicketsCallback(surrogateSocket){
 			var sendStr = JSON.stringify(request) + "\n";
 			surrogateSocket.send(sendStr.toString('utf-8'));
 			console.info("Sent:\n" + sendStr);
-			surrogateSocket.ondata = function (event) {
-				alert("data");
-				var receiveStatus = "failed";
-				if (typeof event.data === 'string'){
-					console.log(event.data);
-					var response = JSON.parse(event.data);
-					if(response.response == "success"){
-						//save and get id
-						console.log(response.graphimage);
-						receiveStatus = "success";
-						ticketList.shift();
-						surrogateSocket.onclose = function (event) {
-							console.info("socket closed");
-						}
-					}	
-				} 
-				if(receiveStatus == "failed"){
-					alert("Error?");
-					surrogateSocket.onclose = function (event) {
-						console.info("socket closed");
-					}
-				}
-				surrogateSocket.close();
-				//turn periodical data push back on
-				dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
-			}
+			var receiveStr = "";
 		}
+		
 	}
 }	
 
 function pushStagedData(){
+	console.log("gonna try to send data");
 	//turn periodical data push off
 	clearInterval(dataPushInterval);
 	if(stagingList.length > 0){
@@ -97,7 +105,7 @@ function pushStagedData(){
 		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
 	} else {
 		//turn periodical data push back on
-		dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
+		dataPushInterval = setInterval(function(){pushStagedData()}, dataPushIntervalWaitTime);
 	}
 }
 
@@ -120,8 +128,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 		surrogateSocket.ondata = function (event) {
 			/*TODO: return the number of stored json objects from the surrogate, so that
 			we know what has been saved.*/
-			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok")
-			{
+			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok"){
 				alert("All weather data saved on surrogate.");
 				stagingList = [];
 				surrogateSocket.onclose = function (event) {
@@ -135,7 +142,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 			}
 			surrogateSocket.close();
 			//turn periodical data push back on
-			dataPushInterval = setInterval(function(){pushStagedData()}, retryDataPushInterval);
+			dataPushInterval = setInterval(function(){pushStagedData()}, dataPushIntervalWaitTime);
 		}
 	}	
 }

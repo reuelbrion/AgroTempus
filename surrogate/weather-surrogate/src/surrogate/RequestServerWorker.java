@@ -94,7 +94,7 @@ public class RequestServerWorker implements Runnable {
 	@SuppressWarnings("unchecked")
 	private boolean handleServiceRequest(BufferedReader in, String serviceType) {
     	System.out.println("Reading service request. @Request worker.");
-    	boolean success = false;
+    	boolean success = false;    	
     	try {
 			if(serviceType.equals(Surrogate.SERVICE_TYPE_RETRIEVE_REGIONAL_DATA)){
 				if(out == null){
@@ -122,7 +122,7 @@ public class RequestServerWorker implements Runnable {
 				response.put("response", "ok");
 				out.write(response.toJSONString());
 				out.flush();
-				success = getComputationResults(in, out);
+				success = sendComputationResults(in, out);
 			} else {	
 					 handleUnknownMessage();
 				}
@@ -202,7 +202,7 @@ public class RequestServerWorker implements Runnable {
 		return sendRequestData(list, in, out);
 	}
 
-	private boolean getComputationResults(BufferedReader in, BufferedWriter out) {
+	private boolean sendComputationResults(BufferedReader in, BufferedWriter out) {
 		String inputLine;
 		JSONObject request;
     	JSONParser parser = new JSONParser();
@@ -220,7 +220,7 @@ public class RequestServerWorker implements Runnable {
 					String sendStr = compRequest.response.toJSONString() + "\n";
 					out.write(sendStr);
 					out.flush();
-					System.out.println("Sending requested computation results to requestor, ticket: " + ticket + ". @Request worker.");
+					System.out.println("Sending response to requestor for ticket: " + ticket + ". @Request worker.");
 					return true;
 			    } else {
 			    	//TODO
@@ -247,12 +247,12 @@ public class RequestServerWorker implements Runnable {
 			return false;
 		}
 		String inputLine;
-		JSONObject mobResponse;
+		JSONObject mobileResponse;
     	JSONParser parser = new JSONParser();
 		try {
 			if((inputLine = in.readLine()) != null){
-				mobResponse = (JSONObject)parser.parse(inputLine);
-				if(mobResponse.containsKey("response") && mobResponse.get("response").equals("ok")){
+				mobileResponse = (JSONObject)parser.parse(inputLine);
+				if(mobileResponse.containsKey("response") && mobileResponse.get("response").equals("ok")){
 					System.out.println("Succesfully sent data to requestor. @Request worker.");
 					return true;
 			    }

@@ -119,6 +119,7 @@ public class OffloadComputationWorker implements Runnable {
 		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
 		results.put("ticket", computationRequest.ticket);
 		storageManager.computationResultStorageQueue.add(results);
+		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
 	}
 
 	@SuppressWarnings("unused")

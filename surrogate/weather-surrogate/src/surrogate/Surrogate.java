@@ -8,7 +8,7 @@ public class Surrogate {
 	public final static String SERVICE_TYPE_RETRIEVE_FORECASTS = "retrieve_forecasts";
 	public final static String SERVICE_TYPE_RETRIEVE_REGIONAL_DATA = "retrieve_regional_data";
 	public final static String SERVICE_TYPE_STORE_WEATHER_DATA = "store_weather_data";
-	public final static String SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
+	public final static String SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS = "retrieve_computation_results";
 	public final static String SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 	public final static String SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	private static final long SLEEP_TIME_UI_LOADING = 250; //ms

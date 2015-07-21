@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.text.DefaultCaret;
 
 public class SurrogateUI extends OutputStream implements Runnable {
 	private final static String CLOSE_UI_EXIT_SURROGATE = "This will stop the surrogate. Are you sure?";
@@ -35,7 +36,6 @@ public class SurrogateUI extends OutputStream implements Runnable {
 	public SurrogateUI(Surrogate surrogate){
 		sb = new StringBuilder();
 		messageOutput = new JTextArea(25, 80);
-		messageOutput.setEditable (false);
 		initiated = false;
 		running = true;
 		closingWindow = false;
@@ -49,6 +49,11 @@ public class SurrogateUI extends OutputStream implements Runnable {
 	    guiFrame.setLocationRelativeTo(null);
 	    guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    setExitListener(guiFrame);
+	    //text panel
+		messageOutput.setEditable (false);
+		messageOutput.setLineWrap(true);
+		DefaultCaret caret = (DefaultCaret)messageOutput.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         //title panel
 	    final JPanel titlePanel = new JPanel();
 	    JLabel titleLabel = new JLabel("Weather Surrogate: component message overview.");
