@@ -54,7 +54,9 @@ public class RequestServerWorker implements Runnable {
 				System.out.println("Error handling request. @Request worker.");
 				e.printStackTrace();
 			}
-	        if(!success){
+	        if(success){
+	        	
+	        } else {
 	        	handleFailed();
 	        }
 		}
@@ -217,11 +219,11 @@ public class RequestServerWorker implements Runnable {
 					while(!compRequest.ready){
 						Thread.sleep(SLEEP_TIME_COMPUTATION_RESULTS_REQUEST);
 					}
-					String sendStr = compRequest.response.toJSONString() + "\n";
+					String sendStr = compRequest.response.toJSONString() + "\n";					
 					out.write(sendStr);
 					out.flush();
 					System.out.println("Sending response to requestor for ticket: " + ticket + ". @Request worker.");
-					return true;
+					return receiveMobileConfirmation(in, out, ticket);
 			    } else {
 			    	//TODO
 			    }
@@ -229,6 +231,33 @@ public class RequestServerWorker implements Runnable {
 		} catch (Exception e) {
 			System.out.println("Error handling computation result request. @Request worker.");
 			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private boolean receiveMobileConfirmation(BufferedReader in, BufferedWriter out, String ticket) {
+		String inputLine;
+		JSONObject confirmation;
+    	JSONParser parser = new JSONParser();
+		try {
+			if ((inputLine = in.readLine()) != null){
+				confirmation = (JSONObject)parser.parse(inputLine);
+				if(confirmation.containsKey("response")){
+					String status = (String)confirmation.get("response");
+					if(status.equals("ok")){
+						storageManager.successfullyReceivedTickets.add(ticket);
+						String continueGettingTickets = (String)confirmation.get("moretickets");
+						if(continueGettingTickets.equals("yes")){
+							return sendComputationResults(in, out);
+						}
+						return true;
+					}
+			    } 
+			}
+		} catch (Exception e) {
+			System.out.println("Error parsing regional request. @Request worker.");
+			e.printStackTrace();
+			return false;
 		}
 		return false;
 	}

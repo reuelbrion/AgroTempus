@@ -52,36 +52,51 @@ function getOutstandingTicketsCallback(surrogateSocket){
 		//TODO: no surrogate found
 		console.info("Couldn't find surrogate for getting outstanding tickets.");
 	} else {
+		//TODO: timeout
+		var done = false;
+		var inData = "";
 		surrogateSocket.onerror = function (event) {
-			proceed = false;
 			console.info("error during ticket retrieval: " + event.data.name);
 		}
 		surrogateSocket.ondata = function (event) {
-			alert(event.data);
-			/*var receiveStatus = "failed";
+			surrogateSocket.suspend;
 			if (typeof event.data === 'string'){
-				console.log(event.data);
-				var response = JSON.parse(event.data);
-				if(response.response == "success"){
-					//save and get id
-					console.log(response.graphimage);
-					receiveStatus = "success";
-					ticketList.shift();
-					surrogateSocket.onclose = function (event) {
-						console.info("socket closed");
-					}
-				}	
-			} 
-			if(receiveStatus == "failed"){
-				alert("Error?");
-				surrogateSocket.onclose = function (event) {
-					console.info("socket closed");
+				inData += event.data;
+				if(event.data.substr(event.data.length - 1) == "\n"){
+					done = true;
 				}
-			}*/
-			//turn periodical data push back on
-			ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
-			surrogateSocket.close();
-			
+			} 
+			if(done){
+				var response = JSON.parse(inData);
+				if(response.response == "success"){
+					var imageString = '<img src="data:image/png;base64,'+response.graphimage+'">';
+					document.getElementById("regression-span").innerHTML = imageString;
+				}
+				//turn periodical data push back on
+				ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
+				//send confirmation to surrogate
+				var response = new Object();
+				response.response = "ok";
+				if(ticketList > 1){
+					response.moretickets = "yes";
+				} else {
+					response.moretickets = "no";
+				}
+				var sendStr = JSON.stringify(response) + "\n";
+				surrogateSocket.send(sendStr.toString('utf-8'));
+				//TODO: inform user of new data
+				surrogateSocket.onclose = function (event) {
+					console.info("closed socket to surrogate");
+				}
+				ticketList.shift();
+				if(ticketList.length > 0){
+					surrogateSocket.resume;
+					getOutstandingTicketsCallback(surrogateSocket)
+				} else {
+					surrogateSocket.close();
+				}
+			}
+			surrogateSocket.resume;
 		}
 		if(ticketList.length > 0){
 			var ticket = ticketList[0];
