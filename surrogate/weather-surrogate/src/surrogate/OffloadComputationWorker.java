@@ -3,6 +3,7 @@ package surrogate;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;import java.util.Date;
 
 import javax.swing.JFrame;
@@ -75,7 +76,8 @@ public class OffloadComputationWorker implements Runnable {
 				XYSeriesCollection regressionData = new XYSeriesCollection();
 				XYSeries seriesData = createSeriesDataRegression(dataList, regressionVariable);
 				regressionData.addSeries(seriesData);
-				JFreeChart chart = ChartFactory.createScatterPlot("title", "x", "y", regressionData);
+				String title = "Regression resutls - " + LocalDateTime.now().toString(); 
+				JFreeChart chart = ChartFactory.createScatterPlot(title, "x", "y", regressionData);
 				XYPlot plot = chart.getXYPlot();
 				if(extrapolateDays > 0){
 					//add ms to domain axis
@@ -116,8 +118,9 @@ public class OffloadComputationWorker implements Runnable {
 		}
 		JSONObject results = new JSONObject();
 		results.put("response", "success");
-		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
 		results.put("ticket", computationRequest.ticket);
+		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
+		results.put("createtime", System.currentTimeMillis());
 		storageManager.computationResultStorageQueue.add(results);
 		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
 	}

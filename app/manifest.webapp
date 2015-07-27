@@ -1,5 +1,5 @@
 {
-  "name": "WeatherApp",
+  "name": "AgroTempus",
   "version": "0.1",
   "description": "Store and retrieve weather data",
   "launch_path": "/app.html",

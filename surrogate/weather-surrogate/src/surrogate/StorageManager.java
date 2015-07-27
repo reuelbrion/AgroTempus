@@ -138,11 +138,11 @@ public class StorageManager implements Runnable {
 			String oldTicket = (String)obj.get("ticket");
 			if(ticket.equals(oldTicket)){
 				storedComputationResultObjects.remove(obj);
-				System.out.println("Removed results from storage. Ticket: " +ticket + " @Storage manager.");
+				System.out.println("Removed computation results from storage. Ticket: " +ticket + " @Storage manager.");
 				return;
 			}
 		}
-		System.out.println("Could not remove results from storage. Ticket not found: " +ticket + " @Storage manager.");
+		System.out.println("Could not remove computation results from storage. Ticket not found: " +ticket + " @Storage manager.");
 	}
 
 	private void computationStorage() {

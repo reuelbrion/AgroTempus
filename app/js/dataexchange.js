@@ -69,8 +69,15 @@ function getOutstandingTicketsCallback(surrogateSocket){
 			if(done){
 				var response = JSON.parse(inData);
 				if(response.response == "success"){
-					var imageString = '<img src="data:image/png;base64,'+response.graphimage+'">';
-					document.getElementById("regression-span").innerHTML = imageString;
+					var computationResults = new Object();					
+					computationResults.ticket = response.ticket;
+					computationResults.graphimage = response.graphimage;	
+					computationResults.createtime = response.createtime;	
+					//in storage.js
+					storeComputationResults(computationResults);
+					
+					/*var imageString = '<img src="data:image/png;base64,'+response.graph-image+'">';
+					document.getElementById("regression-span").innerHTML = imageString;*/
 				}
 				//turn periodical data push back on
 				ticketInterval = setInterval(function(){getOutstandingTickets()}, ticketIntervalWaitTime);
@@ -91,7 +98,7 @@ function getOutstandingTicketsCallback(surrogateSocket){
 				ticketList.shift();
 				if(ticketList.length > 0){
 					surrogateSocket.resume;
-					getOutstandingTicketsCallback(surrogateSocket)
+					getOutstandingTicketsCallback(surrogateSocket);
 				} else {
 					surrogateSocket.close();
 				}
