@@ -117,7 +117,7 @@ function getOutstandingTicketsCallback(surrogateSocket){
 
 function computationResultsCallback(){
 	//in app.js
-	newComputationResults();
+	newIncomingData();
 }
 
 function pushStagedData(){

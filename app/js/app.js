@@ -1,10 +1,19 @@
 "use strict";
 
-function newComputationResults(){
+
 	/*var imageString = '<img src="data:image/png;base64,'+response.graph-image+'">';
 	document.getElementById("regression-confirmation-span").innerHTML = imageString;*/
 
-	
+function newIncomingData(){
+	toggleNewDataIcon(true);
+}
+
+function toggleNewDataIcon(switchOn){
+	if(switchOn){
+		document.getElementById("newdata-head-btn").setAttribute("class", "icon icon-newdata");
+	} else {
+		document.getElementById("newdata-head-btn").setAttribute("class", "hidden");
+	}
 }
 
 function setSectionVisible(visibleSection){
@@ -83,8 +92,9 @@ function addForecastElements(receivedItems){
 function receivedItemsClick(){
 	setSectionVisible("received-overview");	
 	makeBackButtonHeaderVisible();
+	toggleNewDataIcon(false);
 	//in storage.js
-	getReceivedItemsList(displayReceivedItemsCallback);
+	//getReceivedItemsList(displayReceivedItemsCallback);
 }
 
 function displayReceivedItemsCallback(receivedItemsList){
@@ -318,7 +328,7 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn7").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn8").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn9").addEventListener("click", backToMainClick);
-	
+	document.getElementById("newdata-head-btn").addEventListener("click", receivedItemsClick);
 	loadLocations(addLocationElements);
 });
 

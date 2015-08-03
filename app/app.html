@@ -19,7 +19,7 @@
 <header>
 	<h1>AgroTempus</h1>
 	<button id="back-to-main-head-btn" class="hidden"><span id="back-to-main-span" class="hidden">back</span></button>
-	<button id="newdata-head-btn" class="icon icon-newdata"><span id="newdata-head-span" class="hidden">new data</span></button>
+	<button id="newdata-head-btn" class="hidden"><span id="newdata-head-span" class="hidden">new data</span></button>
 	<menu type="toolbar">
 	</menu>
 </header>
@@ -194,11 +194,11 @@
 			</p>
 			<p>
 				Start date<br>
-				<input id="regression-date-input" type="date" name="date">
+				<input id="regression-date-input" type="date" name="date" required="true">
 			</p>
 			<p>
 				Extrapolate days<br>
-				<input id="regression-days-input" type="number" placeholder="Days" min="1" max="100" step="1" name="regression-days">
+				<input id="regression-days-input" type="number" placeholder="Days" min="1" max="100" step="1" name="regression-days" required="true">
 			</p>
 			<p>
 				<button type="button" class="menu-button" id="regression-submit-btn">Submit</button>
