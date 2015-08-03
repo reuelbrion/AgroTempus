@@ -16,16 +16,13 @@
 
 <body>
 <!-- start title -->
-<section role="region" id="title">
-	<header>
-		<button id="back-to-main-head-btn" class="hidden"><span id="back-to-main-span" class="hidden">back</span></button>
-		<h1>Weather App</h1>
-		<menu type="toolbar">
-		<button id="store-submit-btn" class="hidden"><span id="store-submit-span" class="hidden">store
-		</span></button>
-		</menu>
-	</header>
-</section> 	
+<header>
+	<h1>AgroTempus</h1>
+	<button id="back-to-main-head-btn" class="hidden"><span id="back-to-main-span" class="hidden">back</span></button>
+	<button id="newdata-head-btn" class="icon icon-newdata"><span id="newdata-head-span" class="hidden">new data</span></button>
+	<menu type="toolbar">
+	</menu>
+</header>
 <!-- end title -->
 
 <!-- start main screen-->
@@ -36,7 +33,7 @@
 		<button class="menu-button" id="forecasts-btn">Forecasts</button>
 		<button class="menu-button" id="prediction-btn">Prediction</button>
 		<button class="menu-button" id="regression-btn">Regression</button>
-		<button class="hidden" id="received-new-btn">*new items*</button>
+		<button class="menu-button" id="received-items-btn">Received items</button>
 	</div>
 </section> 
 <!-- end main screen-->
@@ -218,7 +215,7 @@
 <section id="regression-confirm" class="hidden">
 	<div id="regression-confirm-menu" class="menu-container">
 		<h2>Regression - confirmation</h2>
-		<span id="regression-span">
+		<span id="regression-confirmation-span">
 		</span>
 		<br><br>
 		<!-- TODO <button class="menu-button" id="regression-results-button">v</button> -->
@@ -226,6 +223,17 @@
 	</div>
 </section> 
 <!-- end regression confirmation screen -->
+
+<!-- start received items overview screen -->
+<section id="received-overview" class="hidden">
+	<div id="received-overview-menu" class="menu-container">
+		<h2>Received items</h2>
+		<span id="received-overview-span">
+		</span>
+		<button class="menu-button" id="back-to-main-btn9">Back to main menu</button>
+	</div>
+</section> 
+<!-- end received items overview screen -->
 
 <script type="text/javascript" src="js/storage.js"></script>
 <script type="text/javascript" src="js/discovery.js"></script>

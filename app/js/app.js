@@ -1,5 +1,12 @@
 "use strict";
 
+function newComputationResults(){
+	/*var imageString = '<img src="data:image/png;base64,'+response.graph-image+'">';
+	document.getElementById("regression-confirmation-span").innerHTML = imageString;*/
+
+	
+}
+
 function setSectionVisible(visibleSection){
 	var sections = document.getElementsByTagName("section");
 	for (var i = 0; i < sections.length; i++) {
@@ -13,16 +20,6 @@ function setSectionVisible(visibleSection){
 function makeBackButtonHeaderVisible(){
 	document.getElementById("back-to-main-head-btn").setAttribute("class", "icon icon-back");
 	document.getElementById("back-to-main-span").setAttribute("class", "");
-}
-
-function makeStoreButtonHeaderVisible(){
-	document.getElementById("store-submit-btn").setAttribute("class", "icon icon-store");
-	document.getElementById("store-submit-span").setAttribute("class", "");
-}
-
-function makeStoreButtonHeaderInvisible(){
-	document.getElementById("store-submit-btn").setAttribute("class", "hidden");
-	document.getElementById("store-submit-span").setAttribute("class", "hidden");
 }
 
 function makeBackButtonHeaderInvisible(){
@@ -81,6 +78,33 @@ function addForecastElements(receivedItems){
 		itemString += "Description: " + receivedObject.description + "<br><br>";
 	}
 	document.getElementById("forecasts-span").innerHTML = itemString;
+}
+
+function receivedItemsClick(){
+	setSectionVisible("received-overview");	
+	makeBackButtonHeaderVisible();
+	//in storage.js
+	getReceivedItemsList(displayReceivedItemsCallback);
+}
+
+function displayReceivedItemsCallback(receivedItemsList){
+	//TODO: check for correct data
+	var itemString = "";
+	var counter = 1;
+	while(receivedItemsList.length > 0){
+	//TODO: format time into human readable date and time
+		var receivedObject = receivedItemsList.shift();
+		itemString += counter + ". Ticket: <a href=\"\">" + receivedObject.ticket + "</a><br>";
+		if(receivedObject.lastviewed == 0){
+			itemString += "!NEW! - ";
+		} else {
+			itemString += receivedObject.lastviewed.toString();
+		}
+		var createDate = new Date(receivedObject.createtime);
+		itemString += "Created: " + createDate.toString();
+		counter++;
+	}
+	document.getElementById("received-overview-span").innerHTML = itemString;
 }
 
 function predictionClick(){
@@ -204,7 +228,7 @@ function predictionCallBack(status){
 
 function regressionSubmitClick(){
 	setSectionVisible("regression-confirm");
-	document.getElementById("regression-span").innerHTML = "locating surrogate<br>";
+	document.getElementById("regression-confirmation-span").innerHTML = "locating surrogate<br>";
 	var offloadParams = new Object();
 	offloadParams.type = SERVICE_TYPE_OFFLOAD_REGRESSION;
 	offloadParams.variable = selectRegressionVariable($("#regression-variable-select").val());
@@ -233,23 +257,22 @@ function selectRegressionVariable(value){
 
 function regressionCallBack(status, inData, args){
 	if(status == "requesting"){
-		document.getElementById("regression-span").innerHTML = "trying to send request<br> to surrogate<br>";
+		document.getElementById("regression-confirmation-span").innerHTML = "trying to send request<br> to surrogate<br>";
 	}
 	if(status == "unknown"){
-		document.getElementById("regression-span").innerHTML = "unknown response from surrogate<br>";
+		document.getElementById("regression-confirmation-span").innerHTML = "unknown response from surrogate<br>";
 	}
 	if(status == "success"){
-		document.getElementById("regression-span").innerHTML = "request submitted succesfully<br>ticket id:" + inData;
+		document.getElementById("regression-confirmation-span").innerHTML = "request submitted succesfully<br>ticket id:" + inData;
 	}
 	if(status == "failed"){
-		document.getElementById("regression-span").innerHTML = "failed submitting regression request<br>";
+		document.getElementById("regression-confirmation-span").innerHTML = "failed submitting regression request<br>";
 	}
 }
 
 function backToMainClick(){
 	setSectionVisible("main");
 	makeBackButtonHeaderInvisible();
-	makeStoreButtonHeaderInvisible();
 }
 
 function backToMainClickResults(){
@@ -258,7 +281,7 @@ function backToMainClickResults(){
 	document.getElementById("get-results-span").innerHTML = "";
 	document.getElementById("forecasts-span").innerHTML = "";
 	document.getElementById("prediction-span").innerHTML = "";
-	document.getElementById("regression-span").innerHTML = "";
+	document.getElementById("regression-confirmation-span").innerHTML = "";
 }
 
 function addLocationElements(locations){
@@ -280,6 +303,7 @@ $(document).ready(function () {
 	document.getElementById("forecasts-btn").addEventListener("click", forecastsClick);
 	document.getElementById("prediction-btn").addEventListener("click", predictionClick);
 	document.getElementById("regression-btn").addEventListener("click", regressionClick);
+	document.getElementById("received-items-btn").addEventListener("click", receivedItemsClick);	
 	document.getElementById("submit-submit-btn").addEventListener("click", editDataSubmitClick);
 	document.getElementById("edit-time-btn").addEventListener("click", editTimeClick);
 	document.getElementById("get-submit-btn").addEventListener("click", getDataSubmitClick);
@@ -293,6 +317,7 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn6").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn7").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn8").addEventListener("click", backToMainClickResults);
+	document.getElementById("back-to-main-btn9").addEventListener("click", backToMainClick);
 	
 	loadLocations(addLocationElements);
 });

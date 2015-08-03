@@ -2,7 +2,6 @@
 
 var db;
 var request = indexedDB.open("ATStorage", 1);
-var storageReady = false;
 
 request.onerror = function (event) {
 	console.error("Can't open indexedDB.", event);
@@ -11,7 +10,6 @@ request.onerror = function (event) {
 
 request.onsuccess = function (event) {
 	db = event.target.result;
-	storageReady = true;
 	console.info("database opened successfully");
 	//load locations in app.js
 };
@@ -53,33 +51,69 @@ request.onupgradeneeded = function (event) {
         objectStore.createIndex("graphimage", "graphimage", { unique: false });
 		objectStore.createIndex("createtime", "createtime", { unique: false });
 		objectStore.createIndex("lastviewed", "lastviewed", { unique: false });
-    }
-};
+	};
+}
+
+function getReceivedItemsList(callback){
+	//TODO check callback is a function
+	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
+	objectStore.openCursor().onsuccess = function (event) {
+		var cursor = event.target.result;
+		var oldItemsList = [];
+		var newItemsList = [];
+		if (cursor) {
+			var newObject = new Object();			
+			newObject.ticket = cursor.value.ticket;
+			newObject.createtime = cursor.value.createtime;
+			newObject.lastviewed = cursor.value.lastviewed;
+			if(cursor.value.lastviewed == 0){
+				newItemsList.push(newObject);
+				cursor.value.lastviewed = new Date();
+				var requestUpdate = objectStore.put(cursor.value);
+				requestUpdate.onerror = function(event) {
+					//TODO Do something with the error
+				};
+				requestUpdate.onsuccess = function(event) {
+					//TODO
+				};
+			} else {
+				oldItemsList.push(newObject);
+			}
+			cursor.continue();
+		}
+		callback(newItemsList.concat(oldItemsList));
+	};
+	//TODO onerror
+}
 
 function loadLocations(callBack){
-	if(storageReady){
-		//TODO check callback is a function
-		var objectStore = db.transaction("surrogates").objectStore("surrogates");
-		objectStore.openCursor().onsuccess = function (event) {
-			var cursor = event.target.result;
-			var locations = [];
-			if (cursor) {
-				//console.log(cursor.value.location + " - " + cursor.value.country);
-				locations.push(cursor.value.location + " - " + cursor.value.country);
-				cursor.continue();
-			}
-			callBack(locations);
-		};
-	}
+	//TODO check callback is a function
+	var objectStore = db.transaction("surrogates").objectStore("surrogates");
+	objectStore.openCursor().onsuccess = function (event) {
+		var cursor = event.target.result;
+		var locations = [];
+		if (cursor) {
+			//console.log(cursor.value.location + " - " + cursor.value.country);
+			locations.push(cursor.value.location + " - " + cursor.value.country);
+			cursor.continue();
+		}
+		callBack(locations);
+	};
+	//TODO onerror
 }
 
 function storeComputationResults(computationResults, callback){
-	if(storageReady){
-		//TODO check callback is a function
-		var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
-		var storageRequest = objectStore.add(computationResults);
-		storageRequest.onsuccess = function(event) {
-			callback();
-		};
-	}
+	//TODO check callback is a function, check object for correctness
+	computationResults.lastviewed = 0;
+	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
+	var storageRequest = objectStore.add(computationResults);
+	storageRequest.onsuccess = function(event) {
+		callback();
+	};
+	storageRequest.onerror = function (event) {
+		console.error("Can't save computation results.", event);
+		console.trace();
+		//TODO: callback with error
+	};
 }
+
