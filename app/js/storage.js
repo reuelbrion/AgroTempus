@@ -57,10 +57,10 @@ request.onupgradeneeded = function (event) {
 function getReceivedItemsList(callback){
 	//TODO check callback is a function
 	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
+	var oldItemsList = [];
+	var newItemsList = [];
 	objectStore.openCursor().onsuccess = function (event) {
 		var cursor = event.target.result;
-		var oldItemsList = [];
-		var newItemsList = [];
 		if (cursor) {
 			var newObject = new Object();			
 			newObject.ticket = cursor.value.ticket;
@@ -80,10 +80,23 @@ function getReceivedItemsList(callback){
 				oldItemsList.push(newObject);
 			}
 			cursor.continue();
+		} else {
+			callback(newItemsList.concat(oldItemsList));
 		}
-		callback(newItemsList.concat(oldItemsList));
 	};
 	//TODO onerror
+}
+
+function getReceivedItem(requestedTicket, callback){
+	//TODO check callback is a function
+	var objectStore = db.transaction("computationresults").objectStore("computationresults");
+	var request = objectStore.get(requestedTicket);
+	request.onerror = function(event) {
+		//TODO
+	};
+	request.onsuccess = function(event) {
+		callback(request.result);
+	};
 }
 
 function loadLocations(callBack){
@@ -101,6 +114,7 @@ function loadLocations(callBack){
 	};
 	//TODO onerror
 }
+
 
 function storeComputationResults(computationResults, callback){
 	//TODO check callback is a function, check object for correctness

@@ -111,7 +111,6 @@ function getOutstandingTicketsCallback(surrogateSocket){
 			console.info("Sent:\n" + sendStr);
 			var receiveStr = "";
 		}
-		
 	}
 }	
 

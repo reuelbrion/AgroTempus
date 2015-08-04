@@ -94,27 +94,39 @@ function receivedItemsClick(){
 	makeBackButtonHeaderVisible();
 	toggleNewDataIcon(false);
 	//in storage.js
-	//getReceivedItemsList(displayReceivedItemsCallback);
+	getReceivedItemsList(displayReceivedItemsCallback);
 }
 
 function displayReceivedItemsCallback(receivedItemsList){
 	//TODO: check for correct data
 	var itemString = "";
 	var counter = 1;
+	var ticketList = [];
 	while(receivedItemsList.length > 0){
-	//TODO: format time into human readable date and time
 		var receivedObject = receivedItemsList.shift();
-		itemString += counter + ". Ticket: <a href=\"\">" + receivedObject.ticket + "</a><br>";
+		itemString += counter + ". Ticket: <a href=\"#\" class=\"ticket-link\" id=\"" + receivedObject.ticket + "\">" + receivedObject.ticket + "</a><br>";
 		if(receivedObject.lastviewed == 0){
-			itemString += "!NEW! - ";
+			itemString += "!NEW! - <br>";
 		} else {
-			itemString += receivedObject.lastviewed.toString();
+			itemString += "Received: " + receivedObject.lastviewed.toString() + "<br>";
 		}
 		var createDate = new Date(receivedObject.createtime);
-		itemString += "Created: " + createDate.toString();
+		itemString += "Created: " + createDate.toString() + "<br>";
+		itemString += "VIEW DELETE <br>";
+		ticketList.push(receivedObject.ticket);
 		counter++;
 	}
 	document.getElementById("received-overview-span").innerHTML = itemString;
+	while(ticketList.length > 0){
+		var nextTicket = ticketList.shift();
+		document.getElementById(nextTicket).addEventListener("click", function(){goToTicketPage(nextTicket);});
+	}
+}
+
+function goToTicketPage(ticket){
+	setSectionVisible("received-item-details");
+	makeBackButtonHeaderVisible();
+	document.getElementById("received-item-details-span").innerHTML = ticket;
 }
 
 function predictionClick(){
@@ -328,6 +340,7 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn7").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn8").addEventListener("click", backToMainClickResults);
 	document.getElementById("back-to-main-btn9").addEventListener("click", backToMainClick);
+	document.getElementById("back-to-main-btn10").addEventListener("click", backToMainClick);
 	document.getElementById("newdata-head-btn").addEventListener("click", receivedItemsClick);
 	loadLocations(addLocationElements);
 });
