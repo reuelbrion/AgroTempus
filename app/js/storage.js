@@ -99,6 +99,18 @@ function getReceivedItem(requestedTicket, callback){
 	};
 }
 
+function removeReceivedItem(requestedTicket, callback){
+	//TODO check callback is a function
+	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
+	var request = objectStore.delete(requestedTicket);
+	request.onerror = function(event) {
+		callback("error");
+	};
+	request.onsuccess = function(event) {
+		callback("success");
+	};
+}
+
 function loadLocations(callBack){
 	//TODO check callback is a function
 	var objectStore = db.transaction("surrogates").objectStore("surrogates");

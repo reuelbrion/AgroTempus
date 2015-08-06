@@ -1,9 +1,5 @@
 "use strict";
 
-
-	/*var imageString = '<img src="data:image/png;base64,'+response.graph-image+'">';
-	document.getElementById("regression-confirmation-span").innerHTML = imageString;*/
-
 function newIncomingData(){
 	toggleNewDataIcon(true);
 }
@@ -112,21 +108,39 @@ function displayReceivedItemsCallback(receivedItemsList){
 		}
 		var createDate = new Date(receivedObject.createtime);
 		itemString += "Created: " + createDate.toString() + "<br>";
-		itemString += "VIEW DELETE <br>";
 		ticketList.push(receivedObject.ticket);
 		counter++;
 	}
 	document.getElementById("received-overview-span").innerHTML = itemString;
 	while(ticketList.length > 0){
 		var nextTicket = ticketList.shift();
-		document.getElementById(nextTicket).addEventListener("click", function(){goToTicketPage(nextTicket);});
+		document.getElementById(nextTicket).addEventListener("click", function(event){goToTicketPage(event);});
 	}
 }
 
-function goToTicketPage(ticket){
+function goToTicketPage(event){
 	setSectionVisible("received-item-details");
 	makeBackButtonHeaderVisible();
-	document.getElementById("received-item-details-span").innerHTML = ticket;
+	//in storage.js
+	getReceivedItem(event.target.id, goToTicketPageCallback);
+}
+
+function goToTicketPageCallback(requestedItem){	
+	var htmlString = requestedItem.ticket + "<br>" + '<img src="data:image/png;base64,'+ requestedItem.graphimage +'">';
+	htmlString += "<a href=\"#\" id=\"ticket-delete\" ticket=\"" + requestedItem.ticket + "\">DELETE</a>";
+	document.getElementById("received-item-details-span").innerHTML = htmlString;
+	document.getElementById("ticket-delete").addEventListener("click", function(event){deleteTicket(event);});;
+}
+
+function deleteTicket(event){
+	//in storage.js
+	var ticketDeleteElement = document.getElementById(event.target.id);
+	var ticket = ticketDeleteElement.getAttribute("ticket");
+	removeReceivedItem(ticket, deleteTicketCallback);
+}
+
+function deleteTicketCallback(event){
+	alert(event);
 }
 
 function predictionClick(){
