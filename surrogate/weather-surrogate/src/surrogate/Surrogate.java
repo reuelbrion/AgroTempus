@@ -12,6 +12,7 @@ public class Surrogate {
 	public final static String SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 	public final static String SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	private static final long SLEEP_TIME_UI_LOADING = 250; //ms
+	private static final long SLEEP_TIME_SETUP_MANAGER_LOADING = 100;//ms
 
 	private final BufferedReader stdinReader;
 	private final StringBuilder sb;
@@ -25,12 +26,14 @@ public class Surrogate {
 	private StorageServer storageServer;
 	private RequestServer requestServer;
 	private OffloadServer offloadServer;
+	private SetupManager setupManager;
 	private Thread surrogateUIThread;
 	private Thread storageManagerThread;
 	private Thread offloadComputationManagerThread;
 	private Thread storageServerThread;
 	private Thread requestServerThread;
 	private Thread offloadServerThread;
+	private Thread setupManagerThread;
 	public String name;
 	
 	public Surrogate(){
@@ -79,7 +82,7 @@ public class Surrogate {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Problem reading from STDIN.");
 			e.printStackTrace();
 		}
 	}
@@ -118,6 +121,18 @@ public class Surrogate {
 		while(!surrogateUI.initiated){
 			try {
 				Thread.sleep(SLEEP_TIME_UI_LOADING);
+			} catch (InterruptedException e) {
+				System.out.println("Can't sleep.");
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Checking setup data.");
+		setupManager = new SetupManager();
+		setupManagerThread = new Thread(setupManager);
+		setupManagerThread.start();
+		while(!setupManager.ready){
+			try {
+				Thread.sleep(SLEEP_TIME_SETUP_MANAGER_LOADING);
 			} catch (InterruptedException e) {
 				System.out.println("Can't sleep.");
 				e.printStackTrace();
