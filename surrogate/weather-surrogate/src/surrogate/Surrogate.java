@@ -138,6 +138,8 @@ public class Surrogate {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Setup data loaded.");
+
 		System.out.println("Initializing components.");
 		storageManager = new StorageManager();
 		storageManagerThread = new Thread(storageManager);
