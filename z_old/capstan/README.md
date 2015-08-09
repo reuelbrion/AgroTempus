@@ -1,3 +1,0 @@
-# ForagingThesis
-
-Blabla
