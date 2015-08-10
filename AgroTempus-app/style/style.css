@@ -121,6 +121,7 @@ header:first-child h1 {
 
 /* ----------------------------------
 Icons
+Non button items should go to the right
 ---------------------------------- */
 
 header:first-child .icon {
@@ -158,4 +159,5 @@ header:first-child .icon-newdata {
 
 header:first-child .icon-connection {
   background-image: url(images/icons/connection.png);
+  float: right;
 }

@@ -51,7 +51,7 @@ public class SurrogateUI extends OutputStream implements Runnable {
 	    guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    setExitListener(guiFrame);
 	    //text panel
-		messageOutput.setEditable (false);
+		messageOutput.setEditable(false);
 		messageOutput.setLineWrap(true);
 		DefaultCaret caret = (DefaultCaret)messageOutput.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -142,7 +142,7 @@ public class SurrogateUI extends OutputStream implements Runnable {
 	
 	public void setName(String name){
 		if(initiated){
-			guiFrame.setTitle("Weather Surrogate User Interface -- " + name);
+			guiFrame.setTitle("Weather Surrogate User Interface -- " + name);			
 		} 
 	}
 }

@@ -5,19 +5,19 @@ function requestOffload(offloadParams, serviceType, callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
+	console.info(JSON.stringify(offloadParams));
 	//discovery.js
-	getSurrogate(serviceType, null, requestOffloadCallback, offloadParams);
-	callback("requesting");
 	requestedOffloadCallback = callback;
+	callback("requesting");
+	getSurrogate(serviceType, null, requestOffloadCallback, offloadParams);	
 }
 
-function requestOffloadCallback(surrogateSocket, offloadParams){
+function requestOffloadCallback(surrogateSocket, surrogate, offloadParams){
 	if(surrogateSocket == null){
 		requestedOffloadCallback("failed");
 	}
 	else{
 		console.info("Ready to request offload.");
-		console.info(offloadParams);
 		var sendStr = JSON.stringify(offloadParams);
 		sendStr+="\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));

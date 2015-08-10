@@ -26,8 +26,9 @@ import org.json.simple.JSONObject;
 
 public class OffloadComputationWorker implements Runnable {
 	final static long SLEEP_TIME_DATA_REQUEST = 1000;
-	private static final int REGRESSION_IMAGE_WIDTH = 400;
-	private static final int REGRESSION_IMAGE_HEIGHT = 400;
+	private static final int REGRESSION_IMAGE_WIDTH = 400;	//pixels
+	private static final int REGRESSION_IMAGE_HEIGHT = 400; //pixels
+	private static final int NUMBER_OF_DAYS_PREDICTION = 7; //days
 	
 	private ComputationRequest computationRequest;
 	public volatile StorageManager storageManager;
@@ -39,15 +40,29 @@ public class OffloadComputationWorker implements Runnable {
 
 	public void run() {
 		String type = (String)computationRequest.request.get("type");
-		if(type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
+		if (type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
+			getPredictionData(); 
+		} else if (type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION)){
 			getRegressionData();
-		} else if (type.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
-			//TODO
 		} else {
 			System.out.println("Unknown service type. @Computation worker.");            
 		}
 	}
 
+	private void getPredictionData() {
+		RegionalRequest regionalRequest = new RegionalRequest(0, System.currentTimeMillis(), this);
+		storageManager.regionalRequestQueue.add(regionalRequest);
+		while(!regionalRequest.ready){
+			//TODO: timeout
+			try {
+				Thread.sleep(SLEEP_TIME_DATA_REQUEST);
+			} catch (InterruptedException e) {
+				System.out.println("Couldn't sleep. @Computation worker.");
+				e.printStackTrace();
+			}
+		}
+		performPrediction(regionalRequest.response);
+	}
 	private void getRegressionData() {
 		RegionalRequest regionalRequest = new RegionalRequest((long)computationRequest.request.get("startdate"), System.currentTimeMillis(), storageManager);
 		storageManager.regionalRequestQueue.add(regionalRequest);
@@ -70,7 +85,6 @@ public class OffloadComputationWorker implements Runnable {
 			double minMaxDomainValues[] = getMinMaxDomainValues(dataList); 
 			double minMaxRangeValues[] = getMinMaxRangeValues(dataList, regressionVariable);
 			if(minMaxDomainValues == null || minMaxRangeValues == null){
-				//TODO: prints to console instead of UI
 				throw new Exception("Not enough values in data set. @Computation worker.");
 			} else {
 				XYSeriesCollection regressionData = new XYSeriesCollection();
@@ -103,9 +117,36 @@ public class OffloadComputationWorker implements Runnable {
 		} catch (Exception e) {
 			System.out.println("Error with regression computation request. @Computation worker.");
 			e.printStackTrace();
+			//TODO
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	private void performPrediction(ArrayList<JSONObject> dataList) {
+		try {
+			String regressionVariable = (String)computationRequest.request.get("variable");
+			XYSeriesCollection regressionData = new XYSeriesCollection();
+			XYSeries seriesData = createSeriesDataRegression(dataList, regressionVariable);
+			regressionData.addSeries(seriesData);
+			JFreeChart chart = ChartFactory.createScatterPlot("", "", "", regressionData);
+			XYPlot plot = chart.getXYPlot();
+			double regressionParameters[] = Regression.getOLSRegression(plot.getDataset(), 0);
+			LineFunction2D lineFunction = new LineFunction2D(regressionParameters[0], regressionParameters[1]);
+			JSONObject results = new JSONObject();
+			double addDays = 0d;
+			for(Integer i = 0; i < NUMBER_OF_DAYS_PREDICTION; i++){
+				results.put(i.toString(), lineFunction.getValue(System.currentTimeMillis() + addDays));
+				//add a day
+				addDays += 86400000d;
+			}
+			storePredictionResults(results);
+		} catch (Exception e){
+			System.out.println("Error with prediction computation request. @Computation worker.");
+			e.printStackTrace();
+			//TODO
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private void storeRegressionResults(JFreeChart chart) {
 		byte[] imageByteArray = null;
@@ -121,6 +162,19 @@ public class OffloadComputationWorker implements Runnable {
 		results.put("ticket", computationRequest.ticket);
 		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
 		results.put("createtime", System.currentTimeMillis());
+		results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION);
+		storageManager.computationResultStorageQueue.add(results);
+		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void storePredictionResults(JSONObject resultObj) {
+		JSONObject results = new JSONObject();
+		results.put("response", "success");
+		results.put("ticket", computationRequest.ticket);
+		results.put("predictions", resultObj);
+		results.put("createtime", System.currentTimeMillis());
+		results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION);
 		storageManager.computationResultStorageQueue.add(results);
 		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
 	}
@@ -135,7 +189,7 @@ public class OffloadComputationWorker implements Runnable {
 		plotFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
-	private double[] getMinMaxRangeValues(ArrayList<JSONObject> dataList, String regressionVariable) {
+	private double[] getMinMaxRangeValues(ArrayList<JSONObject> dataList, String regressionVariable) throws Exception {
 		double[] output = new double[2];
 		Double minValue = Double.MAX_VALUE;
 		Double maxValue = Double.MIN_VALUE;
@@ -162,7 +216,7 @@ public class OffloadComputationWorker implements Runnable {
 		return output;
 	}
 
-	private double[] getMinMaxDomainValues(ArrayList<JSONObject> dataList) {
+	private double[] getMinMaxDomainValues(ArrayList<JSONObject> dataList) throws Exception {
 		double[] output = new double[2];
 		Long minValue = Long.MAX_VALUE;
 		Long maxValue = Long.MIN_VALUE;

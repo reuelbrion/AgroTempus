@@ -122,7 +122,7 @@ public class OffloadServerWorker implements Runnable {
 				response.put("response", "ok");
 				out.write(response.toJSONString() + "\n");
 				out.flush();
-				success = submitRegression(in, out);
+				success = submitRegression(in);
 			} else if(serviceType.equals(Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION)){
 				if(out == null){
 					out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
@@ -131,7 +131,7 @@ public class OffloadServerWorker implements Runnable {
 				response.put("response", "ok");
 				out.write(response.toJSONString() + "\n");
 				out.flush();
-				success = submitPrediction(in, out);
+				success = submitPrediction(in);
 			} else {	
 				 handleUnknownMessage();
 			}
@@ -142,12 +142,36 @@ public class OffloadServerWorker implements Runnable {
     	return success;
 	}
 
-	private boolean submitPrediction(BufferedReader in, BufferedWriter out2) {
-		// TODO Auto-generated method stub
+	private boolean submitPrediction(BufferedReader in) {
+		JSONParser parser = new JSONParser();
+		JSONObject request;
+		String inputLine;
+		System.out.println("Waiting for prediction request. @Offload worker.");
+		try {
+			if ((inputLine = in.readLine()) != null) {
+				request = (JSONObject)parser.parse(inputLine);
+				if(validatePredictionRequest(request)){
+					System.out.println("Adding prediction request. @Offload worker. \n" + request.toString());
+					myTicket = createTicketumber();
+					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(request, myTicket));
+					System.out.println("Added prediction request to queue.->\nTicket number: " + myTicket+ " @Offload worker.");
+					returnTicket();
+					return true;
+				} else {
+					//TODO: couldnt validate prediction request
+				}
+			} else {
+				handleUnknownMessage();
+				return false;
+			}
+		} catch (Exception e) {
+			System.out.println("Error in adding prediction request. @Offload worker.");
+			e.printStackTrace();
+		}
 		return false;
 	}
 
-	private boolean submitRegression(BufferedReader in, BufferedWriter out2) {
+	private boolean submitRegression(BufferedReader in) {
 		JSONParser parser = new JSONParser();
 		JSONObject request;
 		String inputLine;
@@ -158,7 +182,7 @@ public class OffloadServerWorker implements Runnable {
 				if(validateRegressionRequest(request)){
 					System.out.println("Adding regression request. @Offload worker. \n" + request.toString());
 					myTicket = createTicketumber();
-					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(this, request, myTicket));
+					offloadComputationManager.computationRequestQueue.add(new ComputationRequest(request, myTicket));
 					System.out.println("Added regression request to queue.->\nTicket number: " + myTicket+ " @Offload worker.");
 					returnTicket();
 					return true;
@@ -180,6 +204,15 @@ public class OffloadServerWorker implements Runnable {
 		return surrogateName + this.hashCode() + System.currentTimeMillis();
 	}
 
+	private boolean validatePredictionRequest(JSONObject JSONRequest) {
+		if(JSONRequest.containsKey("type") && JSONRequest.containsKey("variable")){
+			if(JSONRequest.get("type") instanceof String && JSONRequest.get("variable") instanceof String){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private boolean validateRegressionRequest(JSONObject JSONRequest) {
 		if(JSONRequest.containsKey("type") && JSONRequest.containsKey("variable") && JSONRequest.containsKey("regressiontype") 
 		&& JSONRequest.containsKey("startdate") && JSONRequest.containsKey("extrapolatedays")){

@@ -1,25 +1,25 @@
 "use strict";
 
 function newIncomingData(){
-	toggleNewDataIcon(true);
+	setNewDataIcon(true);
 }
 
-function toggleNewDataIcon(switchOn){
+function connectionEstablished(){
+	makeConnectionHeaderVisible();
+}
+
+function connectionBroken(){
+	makeConnectionHeaderInvisible();
+}
+
+function setNewDataIcon(switchOn){
 	if(switchOn){
 		document.getElementById("newdata-head-btn").setAttribute("class", "icon icon-newdata");
+		document.getElementById("newdata-head-span").setAttribute("class", "");
 	} else {
 		document.getElementById("newdata-head-btn").setAttribute("class", "hidden");
+		document.getElementById("newdata-head-span").setAttribute("class", "hidden");
 	}
-}
-
-function setSectionVisible(visibleSection){
-	var sections = document.getElementsByTagName("section");
-	for (var i = 0; i < sections.length; i++) {
-		if(sections[i].getAttribute("id") != "title"){
-			sections[i].setAttribute("class", "hidden");
-		}
-	}
-	document.getElementById(visibleSection).setAttribute("class", "visible-section");
 }
 
 function makeBackButtonHeaderVisible(){
@@ -30,6 +30,26 @@ function makeBackButtonHeaderVisible(){
 function makeBackButtonHeaderInvisible(){
 	document.getElementById("back-to-main-head-btn").setAttribute("class", "hidden");
 	document.getElementById("back-to-main-span").setAttribute("class", "hidden");
+}
+
+function makeConnectionHeaderVisible(){
+	document.getElementById("connected-head-btn").setAttribute("class", "icon icon-connection");
+	document.getElementById("connected-head-span").setAttribute("class", "");
+}
+
+function makeConnectionHeaderInvisible(){
+	document.getElementById("connected-head-btn").setAttribute("class", "hidden");
+	document.getElementById("connected-head-span").setAttribute("class", "hidden");
+}
+
+function setSectionVisible(visibleSection){
+	var sections = document.getElementsByTagName("section");
+	for (var i = 0; i < sections.length; i++) {
+		if(sections[i].getAttribute("id") != "title"){
+			sections[i].setAttribute("class", "hidden");
+		}
+	}
+	document.getElementById(visibleSection).setAttribute("class", "visible-section");
 }
 
 function submitDataClick(){
@@ -87,7 +107,7 @@ function addForecastElements(receivedItems){
 function receivedItemsClick(){
 	setSectionVisible("received-overview");	
 	makeBackButtonHeaderVisible();
-	toggleNewDataIcon(false);
+	setNewDataIcon(false);
 	//in storage.js
 	getReceivedItemsList(displayReceivedItemsCallback);
 }
@@ -99,7 +119,8 @@ function displayReceivedItemsCallback(receivedItemsList){
 	var ticketList = [];
 	while(receivedItemsList.length > 0){
 		var receivedObject = receivedItemsList.shift();
-		itemString += counter + ". Ticket: <a href=\"#\" class=\"ticket-link\" id=\"" + receivedObject.ticket + "\">" + receivedObject.ticket + "</a><br>";
+		itemString += counter + ". Ticket: <a href=\"#\" class=\"ticket-link\" id=\"" + receivedObject.ticket 
+		+ "\">" + receivedObject.ticket + "</a><br>" + receivedObject.type + "<br>";
 		if(receivedObject.lastviewed == 0){
 			itemString += "!NEW! - <br>";
 		} else {
@@ -125,10 +146,26 @@ function goToTicketPage(event){
 }
 
 function goToTicketPageCallback(requestedItem){	
-	var htmlString = requestedItem.ticket + "<br>" + '<img src="data:image/png;base64,'+ requestedItem.graphimage +'">';
-	htmlString += "<a href=\"#\" id=\"ticket-delete\" ticket=\"" + requestedItem.ticket + "\">DELETE</a>";
-	document.getElementById("received-item-details-span").innerHTML = htmlString;
-	document.getElementById("ticket-delete").addEventListener("click", function(event){deleteTicket(event);});;
+	if(requestedItem.type == SERVICE_TYPE_OFFLOAD_PREDICTION){
+		var htmlString = requestedItem.ticket + "<br>";
+		var predictions = requestedItem.predictions;
+		var counter = 1;
+		for (var p in predictions){
+			if(predictions.hasOwnProperty(p)){
+				htmlString += "Day " + counter + ". " + predictions[p] + "<br>";
+				counter++;
+			}
+		}
+		htmlString += "<br><a href=\"#\" id=\"ticket-delete\" ticket=\"" + requestedItem.ticket + "\">DELETE</a>";
+		document.getElementById("received-item-details-span").innerHTML = htmlString;
+		document.getElementById("ticket-delete").addEventListener("click", function(event){deleteTicket(event);});;
+	} else if (requestedItem.type == SERVICE_TYPE_OFFLOAD_REGRESSION){
+		var htmlString = requestedItem.ticket + "<br>" + '<img src="data:image/png;base64,'+ requestedItem.graphimage +'">';
+		htmlString += "<a href=\"#\" id=\"ticket-delete\" ticket=\"" + requestedItem.ticket + "\">DELETE</a>";
+		document.getElementById("received-item-details-span").innerHTML = htmlString;
+		document.getElementById("ticket-delete").addEventListener("click", function(event){deleteTicket(event);});;
+	}
+	
 }
 
 function deleteTicket(event){
@@ -180,28 +217,32 @@ function submitCallBack(status){
 }
 
 function getDataSubmitClick(){
-	setSectionVisible("get-data-results");
 	var startDate = $("#get-date-input1").val();
 	var endDate = $("#get-date-input2").val();
 	startDate = new Date(startDate).getTime();
 	endDate = new Date(endDate).getTime();
+	if(startDate > endDate){
+		getDataCallback("wrongdate");
+		return;
+	}
+	setSectionVisible("get-data-results");
 	//pull data in dataexchange.js
 	pullData(startDate, endDate, getDataCallback);
 }
 
-function getDataCallback(status, inData, args){
+function getDataCallback(status, inData, dates){
 	if(status == null || status == "requesting"){
-		document.getElementById("get-results-span").innerHTML = "retrieving data<br>";
+		document.getElementById("get-results-span").innerHTML = "Handling request.<br>";
 	}
 	else if(status == "wrongdate"){
 		alert("start date should be before end date!");
 		getDataClick();
 	}
 	else if(status == "ready"){
-		addGetDataElements(inData, args[0], args[1]);
+		addGetDataElements(inData, dates[0], dates[1]);
 	}
 	else if(status == "failed"){
-		document.getElementById("get-results-span").innerHTML = "failed getting data<br>";
+		document.getElementById("get-results-span").innerHTML = "failed getting data, could not find surrogate.<br>";
 	}
 }
 
@@ -242,22 +283,36 @@ function editTimeClick(){
 }
 
 function predictionSubmitClick(){
-	setSectionVisible("prediction-confirm");
-	document.getElementById("prediction-span").innerHTML = "sending request<br>";
 	var offloadParams = new Object();
-	offloadParams.variable = $("#prediction-select").val();
-	offloadParams.startdate = $("#prediction-date-input").val();
-	offloadParams.startdate = new Date(offloadParams.startDate);
+	offloadParams.type = SERVICE_TYPE_OFFLOAD_PREDICTION;
+	offloadParams.variable = selectPredictionVariable($("#prediction-select").val());
+	setSectionVisible("prediction-confirm");
+	document.getElementById("prediction-confirm-span").innerHTML = "sending request<br>";
 	//offload request in offload.js
-	requestOffload(offloadParams, predictionCallBack);
+	requestOffload(offloadParams, SERVICE_TYPE_OFFLOAD_PREDICTION, predictionCallBack);
 }
 
-function predictionCallBack(status){
-	if(status == "ok"){
-		document.getElementById("prediction-span").innerHTML = "request has been sent<br> to surrogate<br>";
+function selectPredictionVariable(value){
+	if(value == "Temperature"){
+		return "temp";
+	} else if (value == "Humidity"){
+		return "humidity";
+	} else if (value == "Pressure"){
+		return "pressure";
+	} else {
+		return "unknown";
 	}
-	if(status == null){
-		//TODO: error handling
+}
+
+function predictionCallBack(status, dates){
+	if(status == null || status == "requesting"){
+		document.getElementById("prediction-confirm-span").innerHTML = "Handling request.<br>";
+	}
+	else if(status == "ready"){
+		addGetDataElements(inData, dates[0]);
+	}
+	else if(status == "failed"){
+		document.getElementById("prediction-confirm-span").innerHTML = "Failed getting data, could not find surrogate.<br>";
 	}
 }
 

@@ -84,12 +84,8 @@ function getReceivedItemsList(callback){
 	objectStore.openCursor().onsuccess = function (event) {
 		var cursor = event.target.result;
 		if (cursor) {
-			var newObject = new Object();			
-			newObject.ticket = cursor.value.ticket;
-			newObject.createtime = cursor.value.createtime;
-			newObject.lastviewed = cursor.value.lastviewed;
 			if(cursor.value.lastviewed == 0){
-				newItemsList.push(newObject);
+				newItemsList.push(cursor.value);
 				cursor.value.lastviewed = new Date();
 				var requestUpdate = objectStore.put(cursor.value);
 				requestUpdate.onerror = function(event) {
@@ -99,7 +95,7 @@ function getReceivedItemsList(callback){
 					//TODO
 				};
 			} else {
-				oldItemsList.push(newObject);
+				oldItemsList.push(cursor.value);
 			}
 			cursor.continue();
 		} else {
@@ -154,6 +150,7 @@ function storeComputationResults(computationResults, callback){
 	computationResults.lastviewed = 0;
 	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
 	var storageRequest = objectStore.add(computationResults);
+	console.log(JSON.stringify(computationResults));
 	storageRequest.onsuccess = function(event) {
 		callback();
 	};

@@ -4,7 +4,6 @@ var stagingList = [];
 var ticketList = [];
 var dataPushTimeoutWaitTime = 9000; //ms
 var ticketTimeoutWaitTime = 10000; //ms
-var receivingPullData = null;
 var requestedDataCallback = null;
 var requestedForecastCallback = null;
 
@@ -47,9 +46,10 @@ function getOutstandingTickets(){
 	}
 }
 
-function getOutstandingTicketsCallback(surrogateSocket){
+function getOutstandingTicketsCallback(surrogateSocket, surrogate){
 	if(surrogateSocket == null){
-		//TODO: no surrogate found
+		//turn periodical data push back on
+		ticketTimeout = setTimeout(function(){getOutstandingTickets()}, ticketTimeoutWaitTime);
 		console.info("Couldn't find surrogate for getting outstanding tickets.");
 	} else {
 		//TODO: timeout
@@ -69,12 +69,8 @@ function getOutstandingTicketsCallback(surrogateSocket){
 				}
 			} 
 			if(done){
-				var response = JSON.parse(inData);
-				if(response.response == "success"){
-					var computationResults = new Object();					
-					computationResults.ticket = response.ticket;
-					computationResults.graphimage = response.graphimage;	
-					computationResults.createtime = response.createtime;	
+				var computationResults = JSON.parse(inData);
+				if(computationResults.response == "success"){	
 					//in storage.js
 					storeComputationResults(computationResults, computationResultsCallback);
 				}
@@ -136,7 +132,9 @@ function pushStagedData(){
 
 function pushStagedDataCallback(surrogateSocket, args){
 	if(surrogateSocket == null){
-	 //TODO: no surrogate found
+		//turn periodical data push back on
+		dataPushTimeout = setTimeout(function(){pushStagedData()}, dataPushTimeoutWaitTime);
+		console.info("Couldn't find surrogate for getting outstanding tickets.");
 	}
 	else{
 		var sendStr = "[";
@@ -181,12 +179,12 @@ function pullData(startDate, endDate, UICallback){
 		callback("wrongdate");
 	}
 	var args = [startDate, endDate];
-	//look for surrogate in discovery.js
-	getSurrogate(SERVICE_TYPE_RETRIEVE_REGIONAL_DATA, null, pullDataCallback, args);
 	//callback to update UI
 	UICallback("requesting");
 	//and we need to callback to UI again when we get data so store this callback
 	requestedDataCallback = UICallback;
+	//look for surrogate in discovery.js
+	getSurrogate(SERVICE_TYPE_RETRIEVE_REGIONAL_DATA, null, pullDataCallback, args);	
 }
 
 function pullDataCallback(surrogateSocket, args){

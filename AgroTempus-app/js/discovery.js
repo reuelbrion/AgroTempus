@@ -7,7 +7,6 @@ var SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
 var SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	
-//in storage.js
 var surrogateList;
 
 function loadSurrogateList(){
@@ -49,6 +48,8 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 	
 	//establishing connection fails
 	socket.onerror = function(event){
+		//in app.js
+		connectionBroken();
 		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
 		getSurrogate(serviceType, surrogateListClone, callback);
 	}
@@ -57,9 +58,12 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 	//connection succeeds
 	socket.onopen = function(event){
 		console.info("-> connection to surrogate opened: " + socket.port + " - " + socket.host + "\n");	
-		//TODO: when connection breaks after a connection existed, we want to try again more than once with the same surrogate.
-		socket.onerror = function(event){
+		//in app.js
+		connectionEstablished();
+		socket.onerror = function(event){			
 			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + " - " + socket.host + " - " + event.data.name);
+			//in app.js
+			connectionBroken();
 			surrogateListClone.push(chosenSurrogate);
 			getSurrogate(serviceType, surrogateListClone, callback, args);
 		}
@@ -78,10 +82,12 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 			if (typeof event.data === 'string') {
 				var response = JSON.parse(event.data);
 				if(response.response == "ok"){
-					callback(socket, args);
+					callback(socket, chosenSurrogate, args);
 					hasService = true;
 				}
-			} 
+			} else {
+				//TODO
+			}
 			if(!hasService){
 				getSurrogate(serviceType, surrogateListClone, callback, args);
 			}
