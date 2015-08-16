@@ -18,12 +18,15 @@ function requestOffloadCallback(surrogateSocket, surrogate, offloadParams){
 	}
 	else{
 		console.info("Ready to request offload.");
+
 		var sendStr = JSON.stringify(offloadParams);
 		sendStr+="\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));
 		console.info("Sent:\n" + sendStr);
 		//TODO: add timeout
 		surrogateSocket.ondata = function (event) {
+			
+			
 			var status = "failed";
 			var inData = "";
 			if (typeof event.data === 'string') {

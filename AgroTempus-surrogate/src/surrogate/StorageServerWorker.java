@@ -9,59 +9,79 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class StorageServerWorker implements Runnable {
+	private static final int SOCKET_TIMEOUT = 5000; //ms
 	
 	Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
+	private boolean running;
 
 	public StorageServerWorker(Socket clientSocket, StorageManager storageManager) {
+		running = true;
+		try {
+			clientSocket.setSoTimeout(SOCKET_TIMEOUT);
+		} catch (SocketException e) {			
+			try {
+				clientSocket.close();
+			} catch (IOException e1) {
+				System.out.println("Error closing socket during initialisation. @Storage worker.");
+				e1.printStackTrace();
+			}
+			running = false;
+			System.out.println("Error setting socket timeout. @Storage worker.");
+			e.printStackTrace();
+		}
 		this.clientSocket = clientSocket;
 		this.storageManager = storageManager;
 		out = null;
 	}
 	
 	public void run() {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-		} catch (IOException e) {
-			System.out.println("Error opening BufferedReader. @Storage worker.");
-			e.printStackTrace();
-		}
-		
-		if(in != null){
-			boolean success = false;
-			String inputLine;
-	    	JSONObject request = null;
-	    	JSONParser parser = new JSONParser();
+		if(running){
+			BufferedReader in = null;
 			try {
-				if ((inputLine = in.readLine()) != null) {
-					request = (JSONObject)parser.parse(inputLine);
-					if(request.containsKey("type")){
-						success = handleServiceRequest(in, (String)request.get("type"));
-				    }
-					else {
-						handleUnknownMessage();
-					}
-				}
-			} catch (Exception e) {
-				System.out.println("Error handling request. @Storage worker.");
+				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			} catch (IOException e) {
+				System.out.println("Error opening BufferedReader. @Storage worker.");
 				e.printStackTrace();
 			}
-			
-	        if(success){
-	        	handleSuccess();
-	        }
-	        else{
-	        	handleFailed();
-	        }  
-		}
-		try {
-			clientSocket.close();
-			System.out.println("Closing connection to mobile device. @Storage worker.");
-		} catch (IOException e) {
-			System.out.println("Error closing client socket. @Storage worker.");
-			e.printStackTrace();
+			if(in != null){
+				boolean success = false;
+				boolean timedOut = false;
+				String inputLine;
+		    	JSONObject request = null;
+		    	JSONParser parser = new JSONParser();
+				try {
+					if ((inputLine = in.readLine()) != null) {
+						request = (JSONObject)parser.parse(inputLine);
+						if(request.containsKey("type")){
+							success = handleServiceRequest(in, (String)request.get("type"));
+					    }
+						else {
+							handleUnknownMessage();
+						}
+					}
+				} catch (SocketTimeoutException se) {
+					System.out.println("Connection with mobile app timed out. @Storage worker worker.");
+					timedOut = true;
+				} catch (Exception e) {
+					System.out.println("Error handling request. @Storage worker.");
+					e.printStackTrace();
+				}
+		        if(success){
+		        	handleSuccess();
+		        }
+		        else if (!timedOut){
+		        	handleFailed();
+		        }  
+			}
+			try {
+				clientSocket.close();
+				System.out.println("Closing connection to mobile device. @Storage worker.");
+			} catch (IOException e) {
+				System.out.println("Error closing client socket. @Storage worker.");
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -153,10 +173,11 @@ public class StorageServerWorker implements Runnable {
 					return sendToStorageManager(parsedJSON, serviceType);
 				}
 			}
+		} catch (SocketTimeoutException se) {
+			System.out.println("Connection with mobile app timed out. @Storage worker.");
 		} catch (IOException e) {
 			System.out.println("Error with BufferedWriter. @Storage worker.");
 			e.printStackTrace();
-			return false;
 		}
 		return false;
 	}

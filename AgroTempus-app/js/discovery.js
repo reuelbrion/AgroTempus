@@ -7,6 +7,7 @@ var SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
 var SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	
+
 var surrogateList;
 
 function loadSurrogateList(){

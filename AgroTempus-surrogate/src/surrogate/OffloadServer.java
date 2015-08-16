@@ -7,7 +7,7 @@ import java.nio.channels.SocketChannel;
 
 public class OffloadServer implements Runnable {
 	private static final int SERVER_PORT = 11114;
-	private static final long SLEEP_TIME_ACCEPT_SOCKET = 1000;
+	private static final long SLEEP_TIME_ACCEPT_SOCKET = 1000; //ms
 	
 	public volatile boolean running;
 	public volatile StorageManager storageManager;

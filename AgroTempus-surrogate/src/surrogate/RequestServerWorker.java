@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
@@ -13,67 +15,81 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class RequestServerWorker implements Runnable {
-	private static final long SLEEP_TIME_REGIONAL_REQUEST = 1000;
-	private static final long SLEEP_TIME_FORECAST_REQUEST = 1000;
-	private static final long SLEEP_TIME_COMPUTATION_RESULTS_REQUEST = 1000;
+	private static final int SOCKET_TIMEOUT = 5000; //ms
+	private static final long SLEEP_TIME_REGIONAL_REQUEST = 1000; //ms
+	private static final long SLEEP_TIME_FORECAST_REQUEST = 1000; //ms
+	private static final long SLEEP_TIME_COMPUTATION_RESULTS_REQUEST = 1000; //ms
 	protected Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
+	private boolean running;
 
 	public RequestServerWorker(Socket clientSocket, StorageManager storageManager) {
+		running = true;
+		try {
+			clientSocket.setSoTimeout(SOCKET_TIMEOUT);
+		} catch (SocketException e) {			
+			try {
+				clientSocket.close();
+			} catch (IOException e1) {
+				System.out.println("Error closing socket during initialisation. @Request worker.");
+				e1.printStackTrace();
+			}
+			running = false;
+			System.out.println("Error setting socket timeout. @Request worker.");
+			e.printStackTrace();
+			
+		}
 		this.clientSocket = clientSocket;
 		this.storageManager = storageManager;
 		out = null;
 	}
 	
 	public void run() {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-		} catch (IOException e) {
-			System.out.println("Error opening BufferedReader. @Request worker.");
-			e.printStackTrace();
-		}
-		
-		if(in != null){
-			boolean success = false;
-			String inputLine;
-			JSONObject request;
-	    	JSONParser parser = new JSONParser();
+		if(running){
+			BufferedReader in = null;
 			try {
-				if ((inputLine = in.readLine()) != null) {
-					request = (JSONObject)parser.parse(inputLine);
-					if(request.containsKey("type")){
-						success = handleServiceRequest(in, (String)request.get("type"));
-				    }
-					else {
-						handleUnknownMessage();
-					}
-				}
-			} catch (Exception e) {
-				System.out.println("Error handling request. @Request worker.");
+				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			} catch (IOException e) {
+				System.out.println("Error opening BufferedReader. @Request worker.");
 				e.printStackTrace();
 			}
-	        if(success){
-	        	
-	        } else {
-	        	handleFailed();
-	        }
-		}
-		try {
-			if(out != null){
-				out.close();
+			
+			if(in != null){
+				boolean success = false;
+				String inputLine;
+				JSONObject request;
+		    	JSONParser parser = new JSONParser();
+				try {
+					if ((inputLine = in.readLine()) != null) {
+						request = (JSONObject)parser.parse(inputLine);
+						if(request.containsKey("type")){
+							success = handleServiceRequest(in, (String)request.get("type"));
+					    }
+						else {
+							handleUnknownMessage();
+						}
+					}
+				} catch (SocketTimeoutException se) {
+					System.out.println("Connection with mobile app timed out. @Offload worker.");
+				} catch (Exception e) {
+					System.out.println("Error handling request. @Request worker.");
+					e.printStackTrace();
+				}
+		        if(success){
+		        	System.out.println("Successfully handled request. @Request worker.");
+		        } else {
+		        	System.out.println("Failed service request from mobile. Closing thread. @Request worker.");
+		        }
 			}
-			clientSocket.close();
-			System.out.println("Closing connection to mobile device. @Request worker.");
-		} catch (IOException e) {
-			System.out.println("Error closing client socket. @Request worker.");
-			e.printStackTrace();
+			try {
+				clientSocket.close();
+				System.out.println("Closing connection to mobile device. @Request worker.");
+			} catch (IOException e) {
+				System.out.println("Error closing client socket. @Request worker.");
+				e.printStackTrace();
+			}
 		}
-	}
-	
-	private void handleFailed() {
-    		System.out.println("Failed service request from mobile. Closing thread. @Request worker.");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -90,7 +106,7 @@ public class RequestServerWorker implements Runnable {
 			System.out.println("Error opening BufferedWriter. @Request worker.");
 			e.printStackTrace();
 		}
-		System.out.println("Unknow message from mobile. Closing thread. @Request worker.");
+		System.out.println("Unknown message from mobile. Closing thread. @Request worker.");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -159,6 +175,9 @@ public class RequestServerWorker implements Runnable {
 			    	return false;
 			    }
 			}
+		} catch (SocketTimeoutException se) {
+			System.out.println("Connection with mobile app timed out. @Offload worker.");
+			return false;
 		} catch (Exception e) {
 			System.out.println("Error parsing regional request. @Request worker.");
 			e.printStackTrace();
@@ -229,6 +248,8 @@ public class RequestServerWorker implements Runnable {
 			    	//TODO
 			    }
 			}
+		} catch (SocketTimeoutException se) {
+			System.out.println("Connection with mobile app timed out. @Offload worker.");
 		} catch (Exception e) {
 			System.out.println("Error handling computation result request. @Request worker.");
 			e.printStackTrace();
@@ -255,10 +276,11 @@ public class RequestServerWorker implements Runnable {
 					}
 			    } 
 			}
+		} catch (SocketTimeoutException se) {
+			System.out.println("Connection with mobile app timed out. @Offload worker.");
 		} catch (Exception e) {
 			System.out.println("Error parsing regional request. @Request worker.");
 			e.printStackTrace();
-			return false;
 		}
 		return false;
 	}
@@ -290,6 +312,8 @@ public class RequestServerWorker implements Runnable {
 					handleUnknownMessage();
 				}
 			}
+		} catch (SocketTimeoutException se) {
+			System.out.println("Connection with mobile app timed out. @Offload worker.");
 		} catch (Exception e) {
 			System.out.println("Error reading confirmation from mobile. @Request worker.");
 			e.printStackTrace();
