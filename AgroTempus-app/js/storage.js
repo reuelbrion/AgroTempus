@@ -150,7 +150,7 @@ function storeComputationResults(computationResults, callback){
 	computationResults.lastviewed = 0;
 	var objectStore = db.transaction("computationresults", "readwrite").objectStore("computationresults");
 	var storageRequest = objectStore.add(computationResults);
-	console.log(JSON.stringify(computationResults));
+	//console.log(JSON.stringify(computationResults));
 	storageRequest.onsuccess = function(event) {
 		callback();
 	};

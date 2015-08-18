@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;import java.util.Date;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JFrame;
 
@@ -25,17 +26,20 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.json.simple.JSONObject;
 
 public class OffloadComputationWorker implements Runnable {
-	final static long SLEEP_TIME_DATA_REQUEST = 1000;
+	final static long SLEEP_TIME_DATA_REQUEST = 1000; //ms
+	final static long TIME_OUT_DATA_REQUEST = 30000; //ms
 	private static final int REGRESSION_IMAGE_WIDTH = 400;	//pixels
 	private static final int REGRESSION_IMAGE_HEIGHT = 400; //pixels
 	private static final int NUMBER_OF_DAYS_PREDICTION = 7; //days
 	
 	private ComputationRequest computationRequest;
 	public volatile StorageManager storageManager;
+	ConcurrentLinkedQueue<ComputationRequest> computationRequestQueue;
 	
-	public OffloadComputationWorker(ComputationRequest computationRequest, StorageManager storageManager) {
+	public OffloadComputationWorker(ComputationRequest computationRequest, StorageManager storageManager, ConcurrentLinkedQueue<ComputationRequest> computationRequestQueue) {
 		this.computationRequest = computationRequest;
 		this.storageManager = storageManager;
+		this.computationRequestQueue = computationRequestQueue;
 	}
 
 	public void run() {
@@ -52,27 +56,43 @@ public class OffloadComputationWorker implements Runnable {
 	private void getPredictionData() {
 		RegionalRequest regionalRequest = new RegionalRequest(0, System.currentTimeMillis(), this);
 		storageManager.regionalRequestQueue.add(regionalRequest);
+		long timeoutTime = System.currentTimeMillis() + TIME_OUT_DATA_REQUEST;
 		while(!regionalRequest.ready){
-			//TODO: timeout
-			try {
-				Thread.sleep(SLEEP_TIME_DATA_REQUEST);
-			} catch (InterruptedException e) {
-				System.out.println("Couldn't sleep. @Computation worker.");
-				e.printStackTrace();
+			if(timeoutTime < System.currentTimeMillis()){
+				timeoutGettingData();
+				return;
+			} else {
+				try {
+					Thread.sleep(SLEEP_TIME_DATA_REQUEST);
+				} catch (InterruptedException e) {
+					System.out.println("Couldn't sleep. @Computation worker.");
+					e.printStackTrace();
+				}
 			}
 		}
 		performPrediction(regionalRequest.response);
 	}
+	
+	private void timeoutGettingData() {
+		computationRequestQueue.add(computationRequest);
+		System.out.println("Timed out getting data. @Computation worker.");
+	}
+
 	private void getRegressionData() {
 		RegionalRequest regionalRequest = new RegionalRequest((long)computationRequest.request.get("startdate"), System.currentTimeMillis(), storageManager);
 		storageManager.regionalRequestQueue.add(regionalRequest);
+		long timeoutTime = System.currentTimeMillis() + TIME_OUT_DATA_REQUEST;
 		while(!regionalRequest.ready){
-			//TODO: timeout
-			try {
-				Thread.sleep(SLEEP_TIME_DATA_REQUEST);
-			} catch (InterruptedException e) {
-				System.out.println("Couldn't sleep. @Computation worker.");
-				e.printStackTrace();
+			if(timeoutTime < System.currentTimeMillis()){
+				timeoutGettingData();
+				return;
+			} else {
+				try {
+					Thread.sleep(SLEEP_TIME_DATA_REQUEST);
+				} catch (InterruptedException e) {
+					System.out.println("Couldn't sleep. @Computation worker.");
+					e.printStackTrace();
+				}
 			}
 		}
 		performRegression(regionalRequest.response);
@@ -117,7 +137,7 @@ public class OffloadComputationWorker implements Runnable {
 		} catch (Exception e) {
 			System.out.println("Error with regression computation request. @Computation worker.");
 			e.printStackTrace();
-			//TODO
+			storeRegressionResults(null);
 		}
 	}
 	
@@ -143,40 +163,62 @@ public class OffloadComputationWorker implements Runnable {
 		} catch (Exception e){
 			System.out.println("Error with prediction computation request. @Computation worker.");
 			e.printStackTrace();
-			//TODO
+			storePredictionResults(null);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private void storeRegressionResults(JFreeChart chart) {
-		byte[] imageByteArray = null;
-		try {
-			imageByteArray = ChartUtilities.encodeAsPNG(chart.createBufferedImage(REGRESSION_IMAGE_WIDTH, REGRESSION_IMAGE_HEIGHT));
-		} catch (IOException e) {
-			System.out.println("Error encoding png. @Computation worker.");
-			e.printStackTrace();
-			return;
+		if(chart == null){
+			JSONObject results = new JSONObject();
+			results.put("response", "failed");
+			results.put("ticket", computationRequest.ticket);
+			results.put("graphimage", "");
+			results.put("createtime", System.currentTimeMillis());
+			results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION);
+			storageManager.computationResultStorageQueue.add(results);
+			System.out.println("Failed computing ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
+		} else {
+			byte[] imageByteArray = null;
+			try {
+				imageByteArray = ChartUtilities.encodeAsPNG(chart.createBufferedImage(REGRESSION_IMAGE_WIDTH, REGRESSION_IMAGE_HEIGHT));
+			} catch (IOException e) {
+				System.out.println("Error encoding png. @Computation worker.");
+				e.printStackTrace();
+				return;
+			}
+			JSONObject results = new JSONObject();
+			results.put("response", "success");
+			results.put("ticket", computationRequest.ticket);
+			results.put("graphimage", Base64.encodeBase64String(imageByteArray));
+			results.put("createtime", System.currentTimeMillis());
+			results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION);
+			storageManager.computationResultStorageQueue.add(results);
+			System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
 		}
-		JSONObject results = new JSONObject();
-		results.put("response", "success");
-		results.put("ticket", computationRequest.ticket);
-		results.put("graphimage", Base64.encodeBase64String(imageByteArray));
-		results.put("createtime", System.currentTimeMillis());
-		results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_REGRESSION);
-		storageManager.computationResultStorageQueue.add(results);
-		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
 	}
 	
 	@SuppressWarnings("unchecked")
 	private void storePredictionResults(JSONObject resultObj) {
-		JSONObject results = new JSONObject();
-		results.put("response", "success");
-		results.put("ticket", computationRequest.ticket);
-		results.put("predictions", resultObj);
-		results.put("createtime", System.currentTimeMillis());
-		results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION);
-		storageManager.computationResultStorageQueue.add(results);
-		System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
+		if(resultObj == null){
+			JSONObject results = new JSONObject();
+			results.put("response", "failed");
+			results.put("ticket", computationRequest.ticket);
+			results.put("predictions", "");
+			results.put("createtime", System.currentTimeMillis());
+			results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION);
+			storageManager.computationResultStorageQueue.add(results);
+			System.out.println("Failed computing ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
+		} else {
+			JSONObject results = new JSONObject();
+			results.put("response", "success");
+			results.put("ticket", computationRequest.ticket);
+			results.put("predictions", resultObj);
+			results.put("createtime", System.currentTimeMillis());
+			results.put("type", Surrogate.SERVICE_TYPE_OFFLOAD_PREDICTION);
+			storageManager.computationResultStorageQueue.add(results);
+			System.out.println("Successfully computed ticket: " + computationRequest.ticket + " Sending to storage. @Computation worker.");
+		}
 	}
 
 	@SuppressWarnings("unused")

@@ -19,6 +19,9 @@ public class RequestServerWorker implements Runnable {
 	private static final long SLEEP_TIME_REGIONAL_REQUEST = 1000; //ms
 	private static final long SLEEP_TIME_FORECAST_REQUEST = 1000; //ms
 	private static final long SLEEP_TIME_COMPUTATION_RESULTS_REQUEST = 1000; //ms
+	private static final long TIMEOUT_FORECAST_REQUEST = 20000; //ms
+	private static final long TIMEOUT_REGIONAL_REQUEST = 30000; //ms
+	private static final long TIMEOUT_COMPUTATION_RESULTS_REQUEST = 20000; //ms
 	protected Socket clientSocket;
 	BufferedWriter out;
 	public volatile StorageManager storageManager;
@@ -108,6 +111,23 @@ public class RequestServerWorker implements Runnable {
 		}
 		System.out.println("Unknown message from mobile. Closing thread. @Request worker.");
 	}
+	
+	@SuppressWarnings("unchecked")
+	private void sendFailureMessage() {
+    	try {
+    		if(out == null){
+    			out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+    		}
+    		JSONObject response = new JSONObject();
+			response.put("response", "failed");
+			out.write(response.toJSONString() + "\n");
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("Error opening BufferedWriter. @Request worker.");
+			e.printStackTrace();
+		}
+		System.out.println("Sent failure message to mobile device. Closing thread. @Request worker.");
+	}
 
 	@SuppressWarnings("unchecked")
 	private boolean handleServiceRequest(BufferedReader in, String serviceType) {
@@ -191,9 +211,14 @@ public class RequestServerWorker implements Runnable {
 		try{
 			ForecastRequest request = new ForecastRequest(this);
 			storageManager.forecastRequestQueue.add(request);
-			//TODO: time out!
+			long timeoutTime = System.currentTimeMillis() + TIMEOUT_FORECAST_REQUEST;
 			while(!request.ready){
-				Thread.sleep(SLEEP_TIME_FORECAST_REQUEST);
+				if(timeoutTime < System.currentTimeMillis()){
+					sendFailureMessage();
+					return false;
+				} else {
+					Thread.sleep(SLEEP_TIME_FORECAST_REQUEST);
+				}
 			}
 			list = request.response;
 		} catch (Exception e) {
@@ -210,9 +235,14 @@ public class RequestServerWorker implements Runnable {
 		try{
 			RegionalRequest request = new RegionalRequest(start, end, this);
 			storageManager.regionalRequestQueue.add(request);
-			//TODO: timeout!
+			long timeoutTime = System.currentTimeMillis() + TIMEOUT_REGIONAL_REQUEST;
 			while(!request.ready){
-				Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
+				if(timeoutTime < System.currentTimeMillis()){
+					sendFailureMessage();
+					return false;
+				} else {
+					Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
+				}
 			}
 			list = request.response;
 		} catch (Exception e) {
@@ -233,10 +263,15 @@ public class RequestServerWorker implements Runnable {
 				if(request.containsKey("ticket")){
 					String ticket = (String)request.get("ticket");
 					ComputationResultRequest compRequest = new ComputationResultRequest(this, ticket);
-					//TODO: timeout
 					storageManager.computationResultRequestQueue.add(compRequest);
+					long timeoutTime = System.currentTimeMillis() + TIMEOUT_COMPUTATION_RESULTS_REQUEST;
 					while(!compRequest.ready){
-						Thread.sleep(SLEEP_TIME_COMPUTATION_RESULTS_REQUEST);
+						if(timeoutTime < System.currentTimeMillis()){
+							sendFailureMessage();
+							return false;
+						} else {
+							Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
+						}
 					}
 					String sendStr = compRequest.response.toJSONString() + "\n";
 					//System.out.println(sendStr);
@@ -244,8 +279,6 @@ public class RequestServerWorker implements Runnable {
 					out.flush();
 					System.out.println("Sending response to requestor for ticket: " + ticket + ". @Request worker.");
 					return receiveMobileConfirmation(in, out, ticket);
-			    } else {
-			    	//TODO
 			    }
 			}
 		} catch (SocketTimeoutException se) {
@@ -285,10 +318,8 @@ public class RequestServerWorker implements Runnable {
 		return false;
 	}
 
-	private boolean sendRequestData(ArrayList<JSONObject> list, BufferedReader in,
-			BufferedWriter out) {
-		//TODO: handle timeout in response
-			String sendStr = createSendString(list);
+	private boolean sendRequestData(ArrayList<JSONObject> list, BufferedReader in, BufferedWriter out) {
+		String sendStr = createSendString(list);
 		try {
 			out.write(sendStr);
 			out.flush();

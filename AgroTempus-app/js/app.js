@@ -73,7 +73,7 @@ function forecastsCallback(status, inData){
 		document.getElementById("forecasts-span").innerHTML = "retrieving data<br><br>";	
 	}
 	else if(status == "error"){
-		//TODO: error handling
+		document.getElementById("forecasts-span").innerHTML = "failed getting data<br><br>";
 	}
 	else if(status == "ready"){
 		addForecastElements(inData);
@@ -87,7 +87,6 @@ function addForecastElements(receivedItems){
 	var itemString = "Forecasts received: <br><br>";
 	receivedItems = JSON.parse(receivedItems);
 	while(receivedItems.length > 0){
-	//TODO: format time into human readable date and time
 		var receivedObject = receivedItems.shift();
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
@@ -97,8 +96,8 @@ function addForecastElements(receivedItems){
 		itemString += "Pressure: " + receivedObject.pressure + "<br>";
 		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
 		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
-		itemString += "Time: " + receivedObject.time + "<br>";
-		//itemString += "Date: " + receivedObject.date + "<br>";
+		var newDate = new Date(receivedObject.time);
+		itemString += "Time: " + newDate.toString() + "<br>";
 		itemString += "Description: " + receivedObject.description + "<br><br>";
 	}
 	document.getElementById("forecasts-span").innerHTML = itemString;
@@ -189,10 +188,9 @@ function regressionClick(){
 	makeBackButtonHeaderVisible();
 }
 
-function editDataSubmitClick(){
+function dataSubmitClick(){
 var submitForm = document.forms["submit-form"];
 	var stagingObject = new Object();
-	//TODO: get surrogate lat and long and name correctly
 	stagingObject.location = submitForm["location-select"].value;
 	stagingObject.temp = submitForm["temp-input"].value;
 	stagingObject.humidity = submitForm["humidity-input"].value;
@@ -211,7 +209,7 @@ var submitForm = document.forms["submit-form"];
 function submitCallBack(status){
 	if (status == "ok"){
 		console.info("-> weather data added to outbound queue");
-		//TODO: show that data has been submitted on app screen
+		alert("weather data added to outbound queue");
 		backToMainClick();
 	}
 }
@@ -247,10 +245,11 @@ function getDataCallback(status, inData, dates){
 }
 
 function addGetDataElements(receivedItems, startDate, endDate){
+	startDate = new Date(startDate).toString();
+	endDate = new Date(endDate).toString();
 	var itemString = "Items received for time period " + startDate + " until " + endDate + "<br><br>";
 	receivedItems = JSON.parse(receivedItems);
 	while(receivedItems.length > 0){
-	//TODO: format time into human readable date and time
 		var receivedObject = receivedItems.shift();
 		itemString += "Location: " + receivedObject.location + "<br>";
 		itemString += "Lat: " + receivedObject.lat + "<br>";
@@ -260,8 +259,8 @@ function addGetDataElements(receivedItems, startDate, endDate){
 		itemString += "Pressure: " + receivedObject.pressure + "<br>";
 		itemString += "Wind speed: " + receivedObject.windspeed + "<br>";
 		itemString += "Wind degree: " + receivedObject.winddegree + "<br>";
-		itemString += "Time: " + receivedObject.time + "<br>";
-		//itemString += "Date: " + receivedObject.date + "<br>";
+		var newDate = new Date(receivedObject.time);
+		itemString += "Time: " + newDate.toString() + "<br>";
 		itemString += "Source: " + receivedObject.source + "<br><br>";
 	}
 	itemString += receivedItems;
@@ -393,7 +392,7 @@ $(document).ready(function () {
 	document.getElementById("prediction-btn").addEventListener("click", predictionClick);
 	document.getElementById("regression-btn").addEventListener("click", regressionClick);
 	document.getElementById("received-items-btn").addEventListener("click", receivedItemsClick);	
-	document.getElementById("submit-submit-btn").addEventListener("click", editDataSubmitClick);
+	document.getElementById("submit-submit-btn").addEventListener("click", dataSubmitClick);
 	document.getElementById("edit-time-btn").addEventListener("click", editTimeClick);
 	document.getElementById("get-submit-btn").addEventListener("click", getDataSubmitClick);
 	document.getElementById("prediction-submit-btn").addEventListener("click", predictionSubmitClick);

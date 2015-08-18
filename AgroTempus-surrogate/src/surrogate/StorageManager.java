@@ -122,7 +122,7 @@ public class StorageManager implements Runnable {
 					removeResultByTicket(ticket);
 				}
 			}
-			
+			cleanRequests();
 			try {
 				Thread.sleep(SLEEP_TIME_PER_CYCLE);
 			} catch (InterruptedException e) {
@@ -133,6 +133,10 @@ public class StorageManager implements Runnable {
 		System.out.println("Storage manager closing down. @Storage manager.");
 	}
 	
+	private void cleanRequests() {
+		// TODO clean requests where requestor is null (timed out/crashed);		
+	}
+
 	private void removeResultByTicket(String ticket) {
 		for(JSONObject obj : storedComputationResultObjects){
 			String oldTicket = (String)obj.get("ticket");

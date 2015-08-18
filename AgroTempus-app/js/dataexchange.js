@@ -11,9 +11,7 @@ var dataPushTimeout = setTimeout(function(){pushStagedData()}, dataPushTimeoutWa
 var ticketTimeout = setTimeout(function(){getOutstandingTickets()}, ticketTimeoutWaitTime);
 
 function stageNewSubmit(stagingObject, UICallback){		
-	var stagingString = JSON.stringify(stagingObject);
-	stagingList.push(stagingString);
-	pushStagedData();
+	stagingList.push(stagingObject);
 	var status = "ok";
 	//TODO: return success/failure messages
 	UICallback(status);
@@ -122,15 +120,16 @@ function pushStagedData(){
 	//turn periodical data push off
 	clearTimeout(dataPushTimeout);
 	if(stagingList.length > 0){
+		var stagingItem = stagingList[0];
 		//in discovery.js
-		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
+		getSpecificSurrogate(stagingItem.location, SERVICE_TYPE_STORE_WEATHER_DATA, pushStagedDataCallback);
 	} else {
 		//turn periodical data push back on
 		dataPushTimeout = setTimeout(function(){pushStagedData()}, dataPushTimeoutWaitTime);
 	}
 }
 
-function pushStagedDataCallback(surrogateSocket, args){
+function pushStagedDataCallback(surrogateSocket, surrogate){
 	if(surrogateSocket == null){
 		//turn periodical data push back on
 		dataPushTimeout = setTimeout(function(){pushStagedData()}, dataPushTimeoutWaitTime);
@@ -140,10 +139,14 @@ function pushStagedDataCallback(surrogateSocket, args){
 		var sendStr = "[";
 		console.info("Ready to send weather data.");
 		for(var i = 0; i < stagingList.length; i++){
-			if(i > 0){
-				sendStr += ",";
+			var currentSurrogate = stagingList[i];
+			if (currentSurrogate.location == surrogate.location + " - " + surrogate.country){
+				if(i > 0){
+					sendStr += ",";
+				}
+				sendStr += JSON.stringify(stagingList[i]);	
+				stagingList[i].old = true;
 			}
-			sendStr += stagingList[i];
 		}
 		sendStr+="]\n";
 		surrogateSocket.send(sendStr.toString('utf-8'));
@@ -153,7 +156,7 @@ function pushStagedDataCallback(surrogateSocket, args){
 			we know what has been saved.*/
 			if (typeof event.data === 'string' && JSON.parse(event.data).response == "ok"){
 				alert("All weather data saved on surrogate.");
-				stagingList = [];
+				removeOldItemsFromStagingList();
 				surrogateSocket.onclose = function (event) {
 					console.info("socket closed");
 				}
@@ -168,6 +171,13 @@ function pushStagedDataCallback(surrogateSocket, args){
 			dataPushTimeout = setTimeout(function(){pushStagedData()}, dataPushTimeoutWaitTime);
 		}
 	}	
+}
+
+function removeOldItemsFromStagingList(){
+	for(var i = stagingList.length -1; i >= 0 ; i--){
+	    if(stagingList[i].old == true){
+	    	stagingList.splice(i, 1);
+	    }
 }
 
 function pullData(startDate, endDate, UICallback){
@@ -187,7 +197,7 @@ function pullData(startDate, endDate, UICallback){
 	getSurrogate(SERVICE_TYPE_RETRIEVE_REGIONAL_DATA, null, pullDataCallback, args);	
 }
 
-function pullDataCallback(surrogateSocket, args){
+function pullDataCallback(surrogateSocket, surrogate, args){
 	if(surrogateSocket == null){
 		//TODO: no surrogate found
 		requestedDataCallback("failed");
@@ -224,7 +234,7 @@ function pullDataCallback(surrogateSocket, args){
 				requestedDataCallback("failed");
 				surrogateSocket.onclose = function (event) {
 					console.info("closed socket to surrogate");
-				}
+				};
 				surrogateSocket.close();
 			}
 		}
@@ -268,9 +278,10 @@ function pullForecastsCallback(surrogateSocket){
 				requestedForecastCallback("failed");
 				surrogateSocket.onclose = function (event) {
 					console.info("closed socket to surrogate");
-				}
+				};
 				surrogateSocket.close();
 			}
 		}
 	}
+}
 }
