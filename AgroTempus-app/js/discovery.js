@@ -6,6 +6,7 @@ var SERVICE_TYPE_STORE_WEATHER_DATA = "store_weather_data";
 var SERVICE_TYPE_RETRIEVE_COMPUTATION_RESULTS =  "retrieve_computation_results";
 var SERVICE_TYPE_OFFLOAD_REGRESSION =  "offload_regression";
 var SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
+var TIMEOUT_SOCKET_CONNECT = 5000; //ms
 	
 
 var surrogateList;
@@ -46,7 +47,10 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		+ chosenSurrogate.country + " at " + chosenSurrogate.IP + " - "  + surrogatePort 
 		+ " for " + serviceType);
 	var socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, surrogatePort);
-	
+	var timeout = setTimeout(function () {
+	    socket.close();
+	    console.info("-> connection attempt to socket timed out: "  + surrogatePort + " - " + chosenSurrogate.IP + " -> ");
+	}, TIMEOUT_SOCKET_CONNECT);
 	//establishing connection fails
 	socket.onerror = function(event){
 		//in app.js
@@ -58,6 +62,7 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 	
 	//connection succeeds
 	socket.onopen = function(event){
+		clearTimeout(timeout);
 		console.info("-> connection to surrogate opened: " + socket.port + " - " + socket.host + "\n");	
 		//in app.js
 		connectionEstablished();

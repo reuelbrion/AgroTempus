@@ -71,20 +71,20 @@ public class StorageManager implements Runnable {
     	    	for(Object json : array){
     	    		storedForecastObjects.add((JSONObject) json);
     	    	}
-    		} catch (ParseException e) {
-    			System.out.println("Error loading dummy data. @Storage Manager.");
-    			e.printStackTrace();    					
-    		}
-    	    	} catch (FileNotFoundException e) {
-    	    		System.out.println("Error loading dummy data. @Storage Manager.");
-        			e.printStackTrace();  
-    			} catch (IOException e) {
-    				System.out.println("Error loading dummy data. @Storage Manager.");
-        			e.printStackTrace();  
-    			}
+    	    } catch (ParseException e) {
+				System.out.println("Error loading dummy forecasts. @Storage Manager.");
+				e.printStackTrace();
+			}
+    	} catch (FileNotFoundException e) {
+    		System.out.println("Error loading dummy forecasts. @Storage Manager.");
+			e.printStackTrace();  
+		} catch (IOException e) {
+			System.out.println("Error loading dummy forecasts. @Storage Manager.");
+			e.printStackTrace();
+		}
     	//end load dummy forecasts
     	
-    	System.out.println("Dummy data successfully loaded. @Storage Manager.");
+    	System.out.println("Loading dummy data done. @Storage Manager.");
 	}
 
 	public void run() {
