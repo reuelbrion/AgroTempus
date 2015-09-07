@@ -40,8 +40,9 @@ request.onupgradeneeded = function (event) {
 		
 		//TEMPORARY DUMMY SURROGATES		
         console.info("Adding sample surrogates");
+        //pc at home
         var sampleSurrogate1 = new Object();
-        sampleSurrogate1.location = "Amsterdam";
+        sampleSurrogate1.location = "ReuelHome";
         sampleSurrogate1.country = "NL";
 		sampleSurrogate1.lat = "52.379";
 		sampleSurrogate1.long = "4.899";
@@ -52,9 +53,11 @@ request.onupgradeneeded = function (event) {
 		sampleSurrogate1.offloadserverport = 11114;
 		sampleSurrogate1.weight = 2;
         objectStore.add(sampleSurrogate1);
+        /*
+        //for testing on the firefoxos emulator
 		var sampleSurrogate2 = new Object();
-        sampleSurrogate2.location = "Breda";
-        sampleSurrogate2.country = "NL";
+        sampleSurrogate2.location = "FirefoxOs";
+        sampleSurrogate2.country = "FF";
 		sampleSurrogate2.lat = "33.379";
 		sampleSurrogate2.long = "1.899";
 		sampleSurrogate2.IP = "localhost";
@@ -63,6 +66,18 @@ request.onupgradeneeded = function (event) {
 		sampleSurrogate2.offloadserverport = 11114;
 		sampleSurrogate2.weight = 1;
         objectStore.add(sampleSurrogate2);
+        //the raspberry pi surrogate
+		var sampleSurrogate3 = new Object();
+        sampleSurrogate3.location = "Raspberry";
+        sampleSurrogate3.country = "PI";
+		sampleSurrogate3.lat = "33.379";
+		sampleSurrogate3.long = "1.899";
+		sampleSurrogate3.IP = "192.168.42.254";
+		sampleSurrogate3.storageserverport = 11112;
+		sampleSurrogate3.requestserverport = 11113;
+		sampleSurrogate3.offloadserverport = 11114;
+		sampleSurrogate3.weight = 3;
+        objectStore.add(sampleSurrogate3);*/
     }
 	if (!db.objectStoreNames.contains("computationresults")) {
         console.info("Creating objectStore for computation results");

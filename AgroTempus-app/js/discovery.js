@@ -48,16 +48,17 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		+ " for " + serviceType);
 	var socket = navigator.mozTCPSocket.open(chosenSurrogate.IP, surrogatePort);
 	var timeout = setTimeout(function () {
-	    socket.close();
-	    console.info("-> connection attempt to socket timed out: "  + surrogatePort + " - " + chosenSurrogate.IP + " -> ");
-	}, TIMEOUT_SOCKET_CONNECT);
+	    	socket.close();
+	    	console.info("-> connection attempt to socket timed out: "  + surrogatePort + " - " + chosenSurrogate.IP + " -> ");
+		}, TIMEOUT_SOCKET_CONNECT);
 	//establishing connection fails
 	socket.onerror = function(event){
 		//in app.js
+		clearTimeout(timeout);
 		connectionBroken();
 		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
 		getSurrogate(serviceType, surrogateListClone, callback);
-	}
+	};
 	//end establishing connection fails
 	
 	//connection succeeds
@@ -72,7 +73,7 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 			connectionBroken();
 			surrogateListClone.push(chosenSurrogate);
 			getSurrogate(serviceType, surrogateListClone, callback, args);
-		}
+		};
 		chosenSurrogate.weight++;
 		//TODO: weight algorithm
 		var serviceRequest = new Object();
@@ -97,8 +98,8 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 			if(!hasService){
 				getSurrogate(serviceType, surrogateListClone, callback, args);
 			}
-		}
-	}
+		};
+	};
 	//end connection succeeds
 }
 

@@ -97,7 +97,7 @@ function getOutstandingTicketsCallback(surrogateSocket, surrogate){
 				}
 			}
 			surrogateSocket.resume;
-		}
+		};
 		if(ticketList.length > 0){
 			var ticket = ticketList[0];
 			var request = new Object();
@@ -178,6 +178,7 @@ function removeOldItemsFromStagingList(){
 	    if(stagingList[i].old == true){
 	    	stagingList.splice(i, 1);
 	    }
+	}
 }
 
 function pullData(startDate, endDate, UICallback){
@@ -283,5 +284,4 @@ function pullForecastsCallback(surrogateSocket){
 			}
 		}
 	}
-}
 }

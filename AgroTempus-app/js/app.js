@@ -65,6 +65,7 @@ function getDataClick(){
 function forecastsClick(){
 	setSectionVisible("forecasts");
 	makeBackButtonHeaderVisible();
+	//in dataexchange.js
 	pullForecasts(forecastsCallback);
 }
 
