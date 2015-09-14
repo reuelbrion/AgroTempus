@@ -385,7 +385,17 @@ function addLocationElements(surrogateList){
 	document.getElementById("location-select").innerHTML += locationString;
 }
 
+//TODO
+function visibilityChange() {
+    if (document.hidden) {
+    	makeConnectionHeaderInvisible();
+    	//TODO: backup outgoing queue in dataexchange.js
+    	//TODO: save updated weights for surrogates
+    }
+}
+
 $(document).ready(function () {
+	//activate buttons
 	document.getElementById("back-to-main-head-btn").addEventListener("click", backToMainClick);
     document.getElementById("submit-data-btn").addEventListener("click", submitDataClick);
 	document.getElementById("get-data-btn").addEventListener("click", getDataClick);
@@ -409,7 +419,7 @@ $(document).ready(function () {
 	document.getElementById("back-to-main-btn9").addEventListener("click", backToMainClick);
 	document.getElementById("back-to-main-btn10").addEventListener("click", backToMainClick);
 	document.getElementById("newdata-head-btn").addEventListener("click", receivedItemsClick);
-	//in discovery.js
-	loadSurrogateList();
+	//set listener for visibility change (minimizing app)
+	document.addEventListener("visibilitychange", visibilityChange);
 });
 

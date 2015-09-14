@@ -9,9 +9,10 @@ request.onerror = function (event) {
 };
 
 request.onsuccess = function (event) {
-	db = event.target.result;
+	db = event.target.result;	
+	//in discovery.js
+	updateSurrogateList();
 	console.info("database opened successfully");
-	//load locations in app.js
 };
 
 request.onupgradeneeded = function (event) {
@@ -47,7 +48,6 @@ request.onupgradeneeded = function (event) {
 		sampleSurrogate1.lat = "52.379";
 		sampleSurrogate1.long = "4.899";
 		sampleSurrogate1.IP = "195.240.53.133";
-		//sampleSurrogate1.IP = "192.168.2.5";
 		sampleSurrogate1.storageserverport = 11112;
 		sampleSurrogate1.requestserverport = 11113;
 		sampleSurrogate1.offloadserverport = 11114;
@@ -65,7 +65,7 @@ request.onupgradeneeded = function (event) {
 		sampleSurrogate2.requestserverport = 11113;
 		sampleSurrogate2.offloadserverport = 11114;
 		sampleSurrogate2.weight = 1;
-        objectStore.add(sampleSurrogate2);
+        objectStore.add(sampleSurrogate2);*/
         //the raspberry pi surrogate
 		var sampleSurrogate3 = new Object();
         sampleSurrogate3.location = "Raspberry";
@@ -77,7 +77,7 @@ request.onupgradeneeded = function (event) {
 		sampleSurrogate3.requestserverport = 11113;
 		sampleSurrogate3.offloadserverport = 11114;
 		sampleSurrogate3.weight = 3;
-        objectStore.add(sampleSurrogate3);*/
+        objectStore.add(sampleSurrogate3);
     }
 	if (!db.objectStoreNames.contains("computationresults")) {
         console.info("Creating objectStore for computation results");
@@ -89,6 +89,8 @@ request.onupgradeneeded = function (event) {
 		objectStore.createIndex("createtime", "createtime", { unique: false });
 		objectStore.createIndex("lastviewed", "lastviewed", { unique: false });
 	};
+	
+	request = indexedDB.open("ATStorage", 1);
 }
 
 function getReceivedItemsList(callback){
@@ -176,3 +178,6 @@ function storeComputationResults(computationResults, callback){
 	};
 }
 
+function storeTicket(ticket, callback){
+	//TODO
+}
