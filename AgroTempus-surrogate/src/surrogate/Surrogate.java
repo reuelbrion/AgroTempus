@@ -13,6 +13,7 @@ public class Surrogate {
 	public final static String SERVICE_TYPE_OFFLOAD_PREDICTION =  "offload_prediction";
 	private static final long SLEEP_TIME_UI_LOADING = 250; //ms
 	private static final long SLEEP_TIME_SETUP_MANAGER_LOADING = 100;//ms
+	private static final long SLEEP_TIME_RUNNING = 7000;//ms
 
 	private final BufferedReader stdinReader;
 	private final StringBuilder sb;
@@ -50,7 +51,7 @@ public class Surrogate {
 	private void run() {
 		initComponents();
 		while(running){
-			//TODO: check if managers are alive etc...
+			checkComponentsAlive();
 			if(userExit){
 				closeSurrogate();
 			}
@@ -59,13 +60,97 @@ public class Surrogate {
 				userExitUI = false;
 			}
 			checkSTDIN();
+			try {
+				Thread.sleep(SLEEP_TIME_RUNNING);
+			} catch (InterruptedException e) {
+				System.out.println("Couldn't sleep.");
+				e.printStackTrace();
+			}
 		}
 		System.out.println("Surrogate closed.");
 	}
 
+	private void checkComponentsAlive() {
+		if(!surrogateUIThread.isAlive()){
+			System.out.println("UI inactive. Restarting.");
+			surrogateUIRestart();
+		}
+		if(!storageManagerThread.isAlive()){
+			System.out.println("Storage Manager inactive. Restarting.");
+			startStorageManager();
+		}
+		if(!offloadComputationManagerThread.isAlive()){
+			System.out.println("Offload Computation Manager inactive. Restarting.");
+			startOffloadComputationManager();
+		}
+		if(!storageServerThread.isAlive()){
+			System.out.println("Storage Server inactive. Restarting.");
+			startStorageServer();
+		}
+		if(!requestServerThread.isAlive()){
+			System.out.println("Request Server inactive. Restarting.");
+			startRequestServer();
+		}
+		if(!offloadServerThread.isAlive()){
+			System.out.println("Offload Server inactive. Restarting.");
+			startOffloadServer();
+		}
+	}
+
+	private void startSetupManager() {
+		setupManager = new SetupManager();
+		setupManagerThread = new Thread(setupManager);
+		setupManagerThread.start();
+		while(!setupManager.ready){
+			try {
+				Thread.sleep(SLEEP_TIME_SETUP_MANAGER_LOADING);
+			} catch (InterruptedException e) {
+				System.out.println("Can't sleep.");
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Setup data loaded.");
+	}
+
+	private void startOffloadComputationManager() {
+		offloadComputationManager = new OffloadComputationManager(storageManager);
+		offloadComputationManagerThread = new Thread(offloadComputationManager);
+		offloadComputationManagerThread.start();
+	}
+
+	private void startStorageManager() {
+		storageManager = new StorageManager();
+		storageManagerThread = new Thread(storageManager);
+		storageManagerThread.start();
+	}
+
+	private void startStorageServer() {
+		storageServer = new StorageServer(storageManager);
+		storageServerThread = new Thread(storageServer);
+		storageServerThread.start();
+	}
+
+	private void startRequestServer() {
+		requestServer = new RequestServer(storageManager);
+		requestServerThread = new Thread(requestServer);
+		requestServerThread.start();
+	}
+	
+	private void startOffloadServer() {
+		offloadServer = new OffloadServer(storageManager, offloadComputationManager, name);
+		offloadServerThread = new Thread(offloadServer);
+		offloadServerThread.start();
+	}
+
+	private void surrogateUIRestart() {
+		surrogateUI = null;
+		startNewUI();
+	}
+
 	private void checkSTDIN() {
 		try {
-			if(stdinReader.ready()){
+			boolean reading = true;
+			while(stdinReader.ready() && reading){
 				char c = (char)stdinReader.read();
 				if(c == '\n' || c == '\r'){
 					String input = sb.toString();
@@ -75,6 +160,7 @@ public class Surrogate {
 						sb.setLength(0);
 						System.out.println("Unknown command on stdin.");
 					}
+					reading = false;
 				} else {
 					sb.append(c);
 				}
@@ -125,36 +211,15 @@ public class Surrogate {
 			}
 		}
 		System.out.println("Checking setup data.");
-		setupManager = new SetupManager();
-		setupManagerThread = new Thread(setupManager);
-		setupManagerThread.start();
-		while(!setupManager.ready){
-			try {
-				Thread.sleep(SLEEP_TIME_SETUP_MANAGER_LOADING);
-			} catch (InterruptedException e) {
-				System.out.println("Can't sleep.");
-				e.printStackTrace();
-			}
-		}
-		System.out.println("Setup data loaded.");
+		startSetupManager();
 		name = setupManager.getSurrogateName();
 		surrogateUI.setName(name);
 		System.out.println("Initializing components.");
-		storageManager = new StorageManager();
-		storageManagerThread = new Thread(storageManager);
-		storageManagerThread.start();
-		offloadComputationManager = new OffloadComputationManager(storageManager);
-		offloadComputationManagerThread = new Thread(offloadComputationManager);
-		offloadComputationManagerThread.start();
-		storageServer = new StorageServer(storageManager);
-		storageServerThread = new Thread(storageServer);
-		storageServerThread.start();
-		requestServer = new RequestServer(storageManager);
-		requestServerThread = new Thread(requestServer);
-		requestServerThread.start();
-		offloadServer = new OffloadServer(storageManager, offloadComputationManager, name);
-		offloadServerThread = new Thread(offloadServer);
-		offloadServerThread.start();
+		startStorageManager();
+		startOffloadComputationManager();
+		startStorageServer();
+		startRequestServer();
+		startOffloadServer();
 	}
 
 	private void closeSurrogate(){

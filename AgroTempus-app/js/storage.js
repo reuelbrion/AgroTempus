@@ -39,9 +39,9 @@ request.onupgradeneeded = function (event) {
 		objectStore.createIndex("offloadserverport", "offloadserverport", { unique: false });
 		objectStore.createIndex("weight", "weight", { unique: false });
 		
-		//TEMPORARY DUMMY SURROGATES		
+		//SURROGATE CONNECTION DATA		
         console.info("Adding sample surrogates");
-        //pc at home
+        //edit this for other computers
         var sampleSurrogate1 = new Object();
         sampleSurrogate1.location = "ReuelHome";
         sampleSurrogate1.country = "NL";

@@ -9,7 +9,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class StorageServerWorker implements Runnable {
-	private static final int SOCKET_TIMEOUT = 5000; //ms
+	private static final int SOCKET_TIMEOUT = 7000; //ms
 	
 	Socket clientSocket;
 	BufferedWriter out;

@@ -1,20 +1,16 @@
 package surrogate;
 
 import java.awt.Color;
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;import java.util.Date;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import javax.swing.JFrame;
-
 import org.apache.commons.codec.binary.Base64;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.function.LineFunction2D;
@@ -114,7 +110,7 @@ public class OffloadComputationWorker implements Runnable {
 				JFreeChart chart = ChartFactory.createScatterPlot(title, "x", "y", regressionData);
 				XYPlot plot = chart.getXYPlot();
 				if(extrapolateDays > 0){
-					//add ms to domain axis
+					//add days in ms to domain axis
 					minMaxDomainValues[1] += (86400000d * extrapolateDays); 
 				}
 				plot.getDomainAxis().setRange(minMaxDomainValues[0], minMaxDomainValues[1]);

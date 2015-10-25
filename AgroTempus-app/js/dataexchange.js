@@ -60,18 +60,19 @@ function getOutstandingTicketsCallback(surrogateSocket, surrogate){
 	}
 	var timeout = setTimeout(function () {
 		surrogateSocket.close();
+		resumeAllGlobalTimeouts();
 	   	console.info("-> Tcp connection was idle for more than " + TIMEOUT_SOCKET_IDLE + " ms. Closing socket." + surrogate.IP + " - " + surrogate.location + " - " + surrogate.country);
 	}, TIMEOUT_SOCKET_IDLE);
 	var done = false;
 	var inData = "";
-	//setup: what happens when connection breaks during ticket requests or other socket problems
+	//setup: connection breaks or other socket problems
 	surrogateSocket.onerror = function (event) {
 		clearTimeout(timeout);
 		resumeAllGlobalTimeouts();
 		console.info("error during ticket retrieval: " + event.data.name);
 	};
 	//end setup connection breaks
-	//setup: what happens when data comes in
+	//setup: data comes in
 	surrogateSocket.ondata = function (event) {
 		clearTimeout(timeout);
 		surrogateSocket.suspend;
@@ -87,6 +88,7 @@ function getOutstandingTicketsCallback(surrogateSocket, surrogate){
 			if(computationResults.response == "success"){	
 				//in storage.js
 				storeComputationResults(computationResults, computationResultsCallback);
+				//TODO: Failure
 			}
 			//turn periodical data push back on
 			resumeAllGlobalTimeouts();
@@ -127,6 +129,7 @@ function getOutstandingTicketsCallback(surrogateSocket, surrogate){
 function computationResultsCallback(){
 	//in app.js
 	newIncomingData();
+	//TODO: failure
 }
 
 function pushStagedData(){
@@ -136,7 +139,7 @@ function pushStagedData(){
 	if(stagingList.length > 0){
 		var stagingItem = stagingList[0];
 		//in discovery.js
-		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, getOutstandingTicketsCallback, null);
+		getSurrogate(SERVICE_TYPE_STORE_WEATHER_DATA, null, pushStagedDataCallback, null);
 	} else {
 		//turn periodical data push back on
 		resumeAllGlobalTimeouts();
@@ -152,16 +155,17 @@ function pushStagedDataCallback(surrogateSocket, surrogate){
 	}
 	var timeout = setTimeout(function () {
 		surrogateSocket.close();
+		resumeAllGlobalTimeouts();
 	   	console.info("-> Tcp connection was idle for more than " + TIMEOUT_SOCKET_IDLE + " ms. Closing socket." + surrogate.IP + " - " + surrogate.location + " - " + surrogate.country);
 	}, TIMEOUT_SOCKET_IDLE);
-	//setup: what happens when connection breaks during ticket requests or other socket problems
+	//setup: connection breaks during or other socket problems
 	surrogateSocket.onerror = function (event) {
 		clearTimeout(timeout);
 		resumeAllGlobalTimeouts();
 		console.info("error during data push: " + event.data.name);
 	};
 	//end setup connection breaks
-	//setup: what happens when data comes in
+	//setup: data comes in
 	surrogateSocket.ondata = function (event) {
 		clearTimeout(timeout);
 		/*TODO: return the number of stored json objects from the surrogate, so that

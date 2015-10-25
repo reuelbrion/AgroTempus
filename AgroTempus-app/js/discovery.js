@@ -52,10 +52,10 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		}, TIMEOUT_SOCKET_CONNECT);
 	//establishing connection fails
 	socket.onerror = function(event){
-		//in app.js
-		clearTimeout(timeout);
-		connectionBroken();
+		clearTimeout(timeout);	
 		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
+		//in app.js
+		connectionBroken();	
 		getSurrogate(serviceType, surrogateListClone, callback);
 	};
 	//end establishing connection fails
@@ -84,93 +84,90 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		
 		//check if surrogate provides this service
 		socket.ondata = function (event) {
-			var hasService = false;
 			if (typeof event.data === 'string') {
 				var response = JSON.parse(event.data);
 				if(response.response == "ok"){
 					callback(socket, chosenSurrogate, args);
-					hasService = true;
+					return;
 				}
-			} else {
-				//TODO
-			}
-			if(!hasService){
-				getSurrogate(serviceType, surrogateListClone, callback, args);
-			}
+			} 
+			//TODO: define socket.onclose
+			socket.close();
+			getSurrogate(serviceType, surrogateListClone, callback, args);
 		};
 	};
 	//end connection succeeds
 }
 
-function getSpecificSurrogate(location, serviceType, callback){
-	for(var i = 0; i < surrogateList.length; i++){
-		if (surrogateList[i].location + " - " + surrogateList[i].country == location){
-			connectToSurrogate(surrogateList[i], serviceType, callback);
-			return;
-		}
-	}
-	callback(null);
-}
-
-function connectToSurrogate(surrogate, serviceType, callback){
-	var surrogatePort = getSurrogatePort(serviceType, surrogate);
-
-	if(surrogatePort == "unknown"){
-		//TODO
-	}
-	console.log("trying to connect to surrogate " + surrogate.location + " - " 
-		+ surrogate.country + " at " + surrogate.IP + " - "  + surrogatePort 
-		+ " for " + serviceType);
-	var socket = navigator.mozTCPSocket.open(surrogate.IP, surrogatePort);
-	
-	//establishing connection fails
-	socket.onerror = function(event){
-		//in app.js
-		connectionBroken();
-		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
-		callback(null);
-	}
-	//end establishing connection fails
-	
-	//connection succeeds
-	socket.onopen = function(event){
-		console.info("-> connection to surrogate opened: " + socket.port + " - " + socket.host + "\n");	
-		//in app.js
-		connectionEstablished();
-		socket.onerror = function(event){			
-			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + " - " + socket.host + " - " + event.data.name);
-			//in app.js
-			connectionBroken();
-			alert("connection broken, surrogate: " + surrogate.location + " - " + surrogate.country);
-		}
-		surrogate.weight++;
-		//TODO: weight algorithm
-		var serviceRequest = new Object();
-		serviceRequest.type = serviceType;
-		var sendStr = JSON.stringify(serviceRequest);
-		sendStr+="\n";
-		sendStr = sendStr.toString('utf-8');
-		socket.send(sendStr);
-		
-		//check if surrogate provides this service
-		socket.ondata = function (event) {
-			var hasService = false;
-			if (typeof event.data === 'string') {
-				var response = JSON.parse(event.data);
-				if(response.response == "ok"){
-					callback(socket, surrogate);
-					hasService = true;
-				}
-			} else {
-				callback(null);
-			}
-			if(!hasService){
-				callback(null);
-			}
-		}
-	}
-	//end connection succeeds
-}
+//Not sure if needed
+//function getSpecificSurrogate(location, serviceType, callback){
+//	for(var i = 0; i < surrogateList.length; i++){
+//		if (surrogateList[i].location + " - " + surrogateList[i].country == location){
+//			connectToSurrogate(surrogateList[i], serviceType, callback);
+//			return;
+//		}
+//	}
+//	callback(null);
+//}
+//
+//function connectToSurrogate(surrogate, serviceType, callback){
+//	var surrogatePort = getSurrogatePort(serviceType, surrogate);
+//
+//	if(surrogatePort == "unknown"){
+//		//TODO
+//	}
+//	console.log("trying to connect to surrogate " + surrogate.location + " - " 
+//		+ surrogate.country + " at " + surrogate.IP + " - "  + surrogatePort 
+//		+ " for " + serviceType);
+//	var socket = navigator.mozTCPSocket.open(surrogate.IP, surrogatePort);
+//	
+//	//establishing connection fails
+//	socket.onerror = function(event){
+//		//in app.js
+//		connectionBroken();
+//		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
+//		callback(null);
+//	}
+//	//end establishing connection fails
+//	
+//	//connection succeeds
+//	socket.onopen = function(event){
+//		console.info("-> connection to surrogate opened: " + socket.port + " - " + socket.host + "\n");	
+//		socket.onerror = function(event){			
+//			console.info("-> something went wrong during connection with surrogate, connection lost: "  + socket.port + " - " + socket.host + " - " + event.data.name);
+//			//in app.js
+//			connectionBroken();
+//			alert("connection broken, surrogate: " + surrogate.location + " - " + surrogate.country);
+//		}
+//		surrogate.weight++;
+//		//TODO: weight algorithm
+//		var serviceRequest = new Object();
+//		serviceRequest.type = serviceType;
+//		var sendStr = JSON.stringify(serviceRequest);
+//		sendStr+="\n";
+//		sendStr = sendStr.toString('utf-8');
+//		socket.send(sendStr);
+//		//in app.js
+//		connectionEstablished();
+//		//check if surrogate provides this service
+//		socket.ondata = function (event) {
+//			var hasService = false;
+//			if (typeof event.data === 'string') {
+//				var response = JSON.parse(event.data);
+//				if(response.response == "ok"){
+//					callback(socket, surrogate);
+//					hasService = true;
+//				}
+//			} else {
+//				callback(null);
+//			}
+//			if(!hasService){
+//				callback(null);
+//			}
+//		}
+//	}
+//	//end connection succeeds
+//}
 
 function getHighestWeightSurrogate(inList){
 	var chosenSurrogate = inList[0];

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class RequestServerWorker implements Runnable {
 	private static final int SOCKET_TIMEOUT = 5000; //ms
@@ -270,7 +269,7 @@ public class RequestServerWorker implements Runnable {
 							sendFailureMessage();
 							return false;
 						} else {
-							Thread.sleep(SLEEP_TIME_REGIONAL_REQUEST);
+							Thread.sleep(SLEEP_TIME_COMPUTATION_RESULTS_REQUEST );
 						}
 					}
 					String sendStr = compRequest.response.toJSONString() + "\n";
