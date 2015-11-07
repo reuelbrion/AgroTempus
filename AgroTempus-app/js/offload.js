@@ -5,7 +5,7 @@ function requestOffload(offloadParams, serviceType, callback){
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
 	}
-	console.info(JSON.stringify(offloadParams));
+	console.info("offload parameters:--->" + JSON.stringify(offloadParams));
 	//discovery.js
 	requestedOffloadCallback = callback;
 	callback("requesting");

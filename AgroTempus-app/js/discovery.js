@@ -56,7 +56,7 @@ function getSurrogate(serviceType, surrogateListClone, callback, args){
 		console.info("-> opening surrogate socket failed for: "  + socket.port + " - " + socket.host + " -> " + event.data.name);
 		//in app.js
 		connectionBroken();	
-		getSurrogate(serviceType, surrogateListClone, callback);
+		getSurrogate(serviceType, surrogateListClone, callback, args);
 	};
 	//end establishing connection fails
 	

@@ -271,7 +271,7 @@ public class RequestServerWorker implements Runnable {
 						} else {
 							Thread.sleep(SLEEP_TIME_COMPUTATION_RESULTS_REQUEST );
 						}
-					}
+					}					
 					String sendStr = compRequest.response.toJSONString() + "\n";
 					//System.out.println(sendStr);
 					out.write(sendStr);
