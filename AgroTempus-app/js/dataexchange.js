@@ -180,11 +180,11 @@ function pushStagedDataCallback(surrogateSocket, surrogate){
 			surrogateSocket.onclose = function (event) {
 			console.info("socket closed");
 		}
-		surrogateSocket.close();
 		//turn periodical data push back on
 		resumeAllGlobalTimeouts();
+		surrogateSocket.close();		
 	}
-	//end data comes in
+	//end of handling incoming data
 	var sendStr = "[";
 	console.info("Ready to send weather data.");
 	for(var i = 0; i < stagingList.length; i++){
@@ -218,11 +218,13 @@ function pullData(startDate, endDate, UICallback){
 	//TODO: check for correct dates (time integers)
 	if (!(typeof(callback) === "function")){
 		//TODO: error handling
+		return;
 	}
 	if (startDate > endDate){
 		callback("wrongdate");
 		return;
 	}
+	clearAllGlobalTimeouts();
 	var args = [startDate, endDate];
 	//callback to update UI
 	UICallback("requesting");
@@ -234,12 +236,14 @@ function pullData(startDate, endDate, UICallback){
 
 function pullDataCallback(surrogateSocket, surrogate, args){
 	if(surrogateSocket == null){
-		//TODO: no surrogate found
+		resumeAllGlobalTimeouts();
 		requestedDataCallback("failed");
 	} else {
 		var timeout = setTimeout(function () {
-			surrogateSocket.close();
+			resumeAllGlobalTimeouts();
+			requestedDataCallback("failed");
 		   	console.info("-> Tcp connection was idle for more than " + TIMEOUT_SOCKET_IDLE + " ms. Closing socket." + surrogate.IP + " - " + surrogate.location + " - " + surrogate.country);
+			surrogateSocket.close();
 		}, TIMEOUT_SOCKET_IDLE);
 		//initialize new pull data request
 		var inData = "";
@@ -253,14 +257,18 @@ function pullDataCallback(surrogateSocket, surrogate, args){
 		//setup what happens on socket error
 		surrogateSocket.onerror = function (event) {
 			clearTimeout(timeout);
-			surrogateSocket.close();
+			resumeAllGlobalTimeouts();
 			console.info("Closing socket, error during data pull: " + event.data.name);
 			requestedDataCallback("failed");
+			surrogateSocket.close();
 		};
 		//end socket error
 		//setup what happens on response
 		surrogateSocket.ondata = function (event) {
 			clearTimeout(timeout);
+			surrogateSocket.onclose = function (event) {
+				console.info("closed socket to surrogate");
+			};
 			if (typeof event.data === 'string') {
 				inData += event.data;
 				if(event.data.substr(event.data.length - 1) == "\n" || event.data.substr(event.data.length - 1) == "]"){
@@ -269,18 +277,18 @@ function pullDataCallback(surrogateSocket, surrogate, args){
 					var sendStr = JSON.stringify(response) + "\n";
 					surrogateSocket.send(sendStr.toString('utf-8'));
 					requestedDataCallback("ready", inData, args);
-				} 
+					resumeAllGlobalTimeouts();
+					surrogateSocket.close();
+				}
 			} else {
 				var response = new Object();
 				response.response = "unknown";
 				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
 				requestedDataCallback("failed");
+				resumeAllGlobalTimeouts();
+				surrogateSocket.close();
 			}
-			surrogateSocket.onclose = function (event) {
-				console.info("closed socket to surrogate");
-			};
-			surrogateSocket.close();
 		}
 		//end response handling
 	}		
@@ -289,25 +297,41 @@ function pullDataCallback(surrogateSocket, surrogate, args){
 function pullForecasts(UICallback){
 	if (!(typeof(UICallback) === "function")){
 		//TODO: error handling
+		alert("??????????");
+		return;
 	}
+	clearAllGlobalTimeouts();
 	getSurrogate(SERVICE_TYPE_RETRIEVE_FORECASTS, null, pullForecastsCallback, null);
 	UICallback("requesting");
 	requestedForecastCallback = UICallback;
 }
 
-function pullForecastsCallback(surrogateSocket){
+function pullForecastsCallback(surrogateSocket, surrogate){
 	if(surrogateSocket == null){
+		resumeAllGlobalTimeouts();
 		requestedForecastCallback("failed");
 	} else {
+		var timeout = setTimeout(function () {
+			resumeAllGlobalTimeouts();
+			requestedForecastCallback("failed");
+		   	console.info("-> Tcp connection was idle for more than " + TIMEOUT_SOCKET_IDLE + " ms. Closing socket." + surrogate.IP + " - " + surrogate.location + " - " + surrogate.country);
+			surrogateSocket.close();
+		}, TIMEOUT_SOCKET_IDLE);
 		var inData = "";
 		console.info("Ready to receive forecasts.\n");
 		//setup what happens on socket error
 		surrogateSocket.onerror = function (event) {
+			resumeAllGlobalTimeouts();
+			requestedForecastCallback("failed");
 			console.info("Closing socket, error during forecast pull: " + event.data.name);
 			surrogateSocket.close();
 		};
 		//end socket error
 		surrogateSocket.ondata = function (event) {
+			clearTimeout(timeout);
+			surrogateSocket.onclose = function (event) {
+				console.info("closed socket to surrogate");
+			}
 			if (typeof event.data === 'string') {
 				inData += event.data;
 				if(event.data.substr(event.data.length - 1) == "\n" || event.data.substr(event.data.length - 1) == "]"){
@@ -316,9 +340,7 @@ function pullForecastsCallback(surrogateSocket){
 					var sendStr = JSON.stringify(response) + "\n";
 					surrogateSocket.send(sendStr.toString('utf-8'));
 					requestedForecastCallback("ready", inData);
-					surrogateSocket.onclose = function (event) {
-						console.info("closed socket to surrogate");
-					}
+					resumeAllGlobalTimeouts();
 					surrogateSocket.close();
 				} 
 			} else {
@@ -327,9 +349,7 @@ function pullForecastsCallback(surrogateSocket){
 				var sendStr = JSON.stringify(response) + "\n";
 				surrogateSocket.send(sendStr.toString('utf-8'));
 				requestedForecastCallback("failed");
-				surrogateSocket.onclose = function (event) {
-					console.info("closed socket to surrogate");
-				};
+				resumeAllGlobalTimeouts();
 				surrogateSocket.close();
 			}
 		}

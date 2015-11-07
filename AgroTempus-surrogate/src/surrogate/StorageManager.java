@@ -164,6 +164,7 @@ public class StorageManager implements Runnable {
 		}
 	}
 
+	//TODO: add unique identifiers to check for double entries
 	private void forecastStorage() {
 		JSONObject obj = forecastStorageQueue.poll();
 		if(obj != null){
@@ -172,6 +173,7 @@ public class StorageManager implements Runnable {
 		}
 	}
 
+	//TODO: add unique identifiers to check for double entries
 	private void weatherStorage() {
 		JSONObject obj = weatherStorageQueue.poll();
 		if(obj != null){

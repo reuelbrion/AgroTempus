@@ -317,6 +317,7 @@ public class RequestServerWorker implements Runnable {
 		return false;
 	}
 
+	//TODO: update to be able to handle very long strings
 	private boolean sendRequestData(ArrayList<JSONObject> list, BufferedReader in, BufferedWriter out) {
 		String sendStr = createSendString(list);
 		try {

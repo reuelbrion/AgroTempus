@@ -241,7 +241,7 @@ function getDataCallback(status, inData, dates){
 		addGetDataElements(inData, dates[0], dates[1]);
 	}
 	else if(status == "failed"){
-		document.getElementById("get-results-span").innerHTML = "failed getting data, could not find surrogate.<br>";
+		document.getElementById("get-results-span").innerHTML = "failed getting data.<br>";
 	}
 }
 
