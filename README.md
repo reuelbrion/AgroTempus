@@ -4,9 +4,12 @@ This branch holds an image file containing the Raspbian Operating System for Ras
 The surrogate image works on a Raspberry Pi 2 with a TP-Link TL-WN722N 
 wireless adapter. For other adapters, some more setup work might be required. <br>
 Unzip the image file and use <a href="http://sourceforge.net/projects/win32diskimager/">Win32Diskimager</a> or a comparable tool to write the image to an SD-Card compatible with the Raspberry Pi.
-<br><br>
+
 -----------------------------------------------------------------------------------------------------
 <br>
+
+# AgroTempus information
+
 AgroTempus is a demo implementation of an agricultural Cyber-Foraging system for resource-challenged environments. 
 It is part of a master thesis project focusing on cyber-foraging tactics. More info can be found on the project page @ 
 <b>http://reuelbrion.github.io/AgroTempus/</b>.
