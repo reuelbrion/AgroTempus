@@ -2,7 +2,7 @@
 
 This branch holds an image file containing the Raspbian Operating System for Raspberry Pi with a working version of the AgroTempus Surrogate auto booting at login. <br>
 The surrogate image works on a Raspberry Pi 2 with a TP-Link TL-WN722N 
-wireless adapter. For other adapters, some more setup work might be required. <br>
+wireless adapter. For other adapters, some more setup work might be required. The Raspberry Pi will function as a Wireless Access point for mobile devices, by creating a local wireless network. The mobile phone using the AgroTempus app should be connected to this network. <br>
 Unzip the image file and use <a href="http://sourceforge.net/projects/win32diskimager/">Win32Diskimager</a> or a comparable tool to write the image to an SD-Card compatible with the Raspberry Pi.
 
 -----------------------------------------------------------------------------------------------------
